@@ -1,5 +1,6 @@
-import windows.GameWindow;
 import javax.swing.*;
+
+import windows.GameWindow;
 
 public class GameEngine {
     void run() {

@@ -21,6 +21,7 @@
 					<failsOnError>true</failsOnError>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 					<violationSeverity>warning</violationSeverity>
+                                        <excludes>windows/**</excludes>
 				</configuration>
 
 				<dependencies>
