@@ -8,12 +8,14 @@ public class Weapon {
     int width;
     int height;
     int ammo;
+    Bullet bulletType;
     
-    public Weapon(Color color, int sizeX, int sizeY, int ammo) {
+    public Weapon(Color color, int sizeX, int sizeY, int ammo, Bullet bulletType) {
         this.color = color;
         this.width = sizeX;
         this.height = sizeY;
         this.ammo = ammo;
+        this.bulletType = bulletType;
     }
     
     public int getAmmo() {
@@ -30,5 +32,9 @@ public class Weapon {
     
     public int getHeight() {
         return height;
+    }
+    
+    public Bullet getBulletType () {
+        return bulletType;
     }
 }

@@ -1,15 +1,21 @@
 package engine;
 
+import entities.Bullet;
 import entities.Character;
+import entities.MovingBullet;
 import entities.Weapon;
 import java.awt.*;
+import java.awt.event.*;
+import java.awt.event.KeyListener;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import javax.swing.*;
 import windows.GameWindow;
 
 public class GameEngine {
     
     Character character;
+    ArrayList<MovingBullet> bullets;
     
     GameWindow gameWindow;
     GamePanel gamePanel;
@@ -26,6 +32,7 @@ public class GameEngine {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+            drawBullets(g);
             drawCharacter(g);
         }
     }
@@ -46,9 +53,23 @@ public class GameEngine {
     void updateCharacter() {
         updateCharacterRotationAngle();
     }
+    
+    void updateBullets() {
+        ArrayList<MovingBullet> forRemoval = new ArrayList<>();
+        for (MovingBullet iterBullet : bullets) {
+            iterBullet.move();
+            if (iterBullet.isOutOfBounds(
+                    gameWindow.getWidth(),
+                    gameWindow.getHeight())) {
+                forRemoval.add(iterBullet);
+            }
+        }
+        bullets.removeAll(forRemoval);
+    }
 
     void update() {
         updateCharacter();
+        updateBullets();
     }
     
     void drawCharacterSprite(Graphics2D g2d) {
@@ -113,6 +134,21 @@ public class GameEngine {
 
     }
     
+    void drawBullets(Graphics g) {
+        for (MovingBullet iterBullet : bullets) {
+            g.setColor(iterBullet.getColor());
+            g.fillOval(iterBullet.getPositionX(),
+                    iterBullet.getPositionY(),
+                    iterBullet.getRadius(),
+                    iterBullet.getRadius());
+            g.setColor(Color.black);
+            g.drawOval(iterBullet.getPositionX(),
+                    iterBullet.getPositionY(),
+                    iterBullet.getRadius(),
+                    iterBullet.getRadius());
+        }
+    }
+    
     void draw() {
         gameWindow.repaint();
     }
@@ -121,6 +157,16 @@ public class GameEngine {
         gameWindow = new GameWindow();
         gameWindow.setSize(500, 500);
         gameWindow.setTitle("GAME");
+        
+        gameWindow.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+                if (keyCode == KeyEvent.VK_SPACE) {
+                    spawnBullet();
+                }
+            }
+        });
         
         gamePanel = new GamePanel();
         gameWindow.getContentPane().add(gamePanel);
@@ -135,8 +181,35 @@ public class GameEngine {
         
         character = new Character(
                 100, screenWidth / 2, screenHeight / 2, 50, 50);
-        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20, 40);
+        
+        Bullet basicBullet = new Bullet(10, 10, 10, Color.yellow);
+        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20, 40, basicBullet);
         character.addWeapon(startWeapon);
+        
+        bullets = new ArrayList<>();
+    }
+    
+    void spawnBullet() {
+        Weapon currentWeapon = character.getCurrentWeapon();
+        if (currentWeapon == null) {
+            return;
+        }
+        
+        double algebraicAngle = -character.getRotationAngle() + Math.PI / 2;
+        
+        int weaponEndX = character.getPositionX() + (int) (
+                Math.cos(character.getRotationAngle()) * currentWeapon.getWidth());
+        int weaponEndY = character.getPositionY() + (int) (
+                Math.sin(character.getRotationAngle()) * currentWeapon.getWidth());
+        
+        Bullet bulletType = currentWeapon.getBulletType();
+        MovingBullet newBullet = new MovingBullet(bulletType);
+        newBullet.setMovingParametres(
+                weaponEndX,
+                weaponEndY,
+                algebraicAngle
+        );
+        bullets.add(newBullet);
     }
 
     public void run() {
