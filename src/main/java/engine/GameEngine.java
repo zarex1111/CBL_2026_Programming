@@ -76,7 +76,17 @@ public class GameEngine {
             g2d.fillRect(character.getPositionX(),
                     character.getPositionY() - currentWeapon.getHeight() / 2,
                     currentWeapon.getWidth(),
-                    currentWeapon.getHeight());
+                    currentWeapon.getHeight()
+            );
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Times New Roman",
+                    Font.PLAIN,
+                    currentWeapon.getHeight() / 2)
+            );
+            g2d.drawString(String.valueOf(currentWeapon.getAmmo()),
+                    character.getPositionX() + currentWeapon.getWidth() / 4,
+                    character.getPositionY()
+            );
         }
     }
     
@@ -125,7 +135,7 @@ public class GameEngine {
         
         character = new Character(
                 100, screenWidth / 2, screenHeight / 2, 50, 50);
-        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20);
+        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20, 40);
         character.addWeapon(startWeapon);
     }
 

@@ -7,11 +7,17 @@ public class Weapon {
     Color color;
     int width;
     int height;
+    int ammo;
     
-    public Weapon(Color color, int sizeX, int sizeY) {
+    public Weapon(Color color, int sizeX, int sizeY, int ammo) {
         this.color = color;
         this.width = sizeX;
         this.height = sizeY;
+        this.ammo = ammo;
+    }
+    
+    public int getAmmo() {
+        return ammo;
     }
     
     public Color getColor() {
