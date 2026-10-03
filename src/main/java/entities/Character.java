@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.ArrayList;
+
 public class Character {
 
     int health;
@@ -8,6 +10,8 @@ public class Character {
     int positionY;
     int sizeX;
     int sizeY;
+    ArrayList<Weapon> inventory;
+    Weapon currentWeapon;
 
     public Character(
             int health, int positionX, int positionY, int sizeX, int sizeY) {
@@ -16,6 +20,7 @@ public class Character {
         this.positionY = positionY;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
+        inventory = new ArrayList<>();
     }
     
     public void setPosition(int x, int y) {
@@ -39,6 +44,10 @@ public class Character {
         return sizeY;
     }
     
+    public double getRotationAngle() {
+        return rotationAngle;
+    }
+    
     public void setRotationAngle(double angle) {
         rotationAngle = angle;
     }
@@ -49,6 +58,15 @@ public class Character {
     
     public int getHealth() {
         return health;
+    }
+    
+    public void addWeapon(Weapon w) {
+        inventory.add(w);
+        currentWeapon = w;
+    }
+    
+    public Weapon getCurrentWeapon() {
+        return currentWeapon;
     }
 
 }

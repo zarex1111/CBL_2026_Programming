@@ -1,7 +1,9 @@
 package engine;
 
 import entities.Character;
+import entities.Weapon;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import javax.swing.*;
 import windows.GameWindow;
 
@@ -28,34 +30,86 @@ public class GameEngine {
         }
     }
     
+    void updateCharacterRotationAngle() {
+        Point mouseOnScreen = MouseInfo.getPointerInfo().getLocation();
+        Point panelOnScreen = gamePanel.getLocationOnScreen();
+        Point mousePosition = new Point(
+                mouseOnScreen.x - panelOnScreen.x,
+                mouseOnScreen.y - panelOnScreen.y);
+        
+        int diffX = mousePosition.x - character.getPositionX();
+        int diffY = mousePosition.y - character.getPositionY();
+        double newAngle = Math.atan2(diffY, diffX);
+        character.setRotationAngle(newAngle);
+    }
+    
     void updateCharacter() {
-        character.setHealth(character.getHealth() + 1);
+        updateCharacterRotationAngle();
     }
 
     void update() {
         updateCharacter();
     }
     
+    void drawCharacterSprite(Graphics2D g2d) {
+        int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
+        int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
+        
+        g2d.setColor(Color.red);
+        g2d.fillRect(
+                topLeftCornerX,
+                topLeftCornerY,
+                character.getSizeX(),
+                character.getSizeY());
+        
+        g2d.setColor(Color.white);
+        g2d.drawString(
+                String.valueOf(character.getHealth()),
+                topLeftCornerX,
+                topLeftCornerY + character.getSizeY() / 2);
+    }
+    
+    void drawWeaponSprite(Graphics2D g2d) {
+        Weapon currentWeapon = character.getCurrentWeapon();
+        if (currentWeapon != null) {
+            g2d.setColor(currentWeapon.getColor());
+            g2d.fillRect(character.getPositionX(),
+                    character.getPositionY() - currentWeapon.getHeight() / 2,
+                    currentWeapon.getWidth(),
+                    currentWeapon.getHeight()
+            );
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Times New Roman",
+                    Font.PLAIN,
+                    currentWeapon.getHeight() / 2)
+            );
+            g2d.drawString(String.valueOf(currentWeapon.getAmmo()),
+                    character.getPositionX() + currentWeapon.getWidth() / 4,
+                    character.getPositionY()
+            );
+        }
+    }
+    
     void drawCharacter(Graphics g) {
+        
+        Graphics2D g2d = (Graphics2D) g;
         
         if (character == null) {
             return;
         }
         
-        int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
-        int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
+        AffineTransform initialState = g2d.getTransform();
+        AffineTransform newState = new AffineTransform();
+        newState.rotate(character.getRotationAngle(),
+                character.getPositionX(),
+                character.getPositionY());
+        g2d.transform(newState);
         
-        g.setColor(Color.red);
-        g.fillRect(
-                topLeftCornerX,
-                topLeftCornerY,
-                character.getSizeX(),
-                character.getSizeY());
-        g.setColor(Color.white);
-        g.drawString(
-                String.valueOf(character.getHealth()),
-                topLeftCornerX,
-                topLeftCornerY + character.getSizeY() / 2);
+        drawCharacterSprite(g2d);
+        
+        drawWeaponSprite(g2d);
+        
+        g2d.setTransform(initialState);
 
     }
     
@@ -80,7 +134,9 @@ public class GameEngine {
         int screenHeight = gamePanel.getHeight();
         
         character = new Character(
-                100, screenWidth / 2, screenHeight / 2, 20, 20);
+                100, screenWidth / 2, screenHeight / 2, 50, 50);
+        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20, 40);
+        character.addWeapon(startWeapon);
     }
 
     public void run() {
