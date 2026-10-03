@@ -39,6 +39,10 @@ public class Character {
         return sizeY;
     }
     
+    public double getRotationAngle() {
+        return rotationAngle;
+    }
+    
     public void setRotationAngle(double angle) {
         rotationAngle = angle;
     }

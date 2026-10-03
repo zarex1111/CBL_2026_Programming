@@ -2,6 +2,7 @@ package engine;
 
 import entities.Character;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import javax.swing.*;
 import windows.GameWindow;
 
@@ -28,8 +29,21 @@ public class GameEngine {
         }
     }
     
+    void updateCharacterRotationAngle() {
+        Point mouseOnScreen = MouseInfo.getPointerInfo().getLocation();
+        Point panelOnScreen = gamePanel.getLocationOnScreen();
+        Point mousePosition = new Point(
+                mouseOnScreen.x - panelOnScreen.x,
+                mouseOnScreen.y - panelOnScreen.y);
+        
+        int diffX = mousePosition.x - character.getPositionX();
+        int diffY = mousePosition.y - character.getPositionY();
+        double newAngle = Math.atan2(diffY, diffX);
+        character.setRotationAngle(newAngle);
+    }
+    
     void updateCharacter() {
-        character.setHealth(character.getHealth() + 1);
+        updateCharacterRotationAngle();
     }
 
     void update() {
@@ -38,6 +52,8 @@ public class GameEngine {
     
     void drawCharacter(Graphics g) {
         
+        Graphics2D g2d = (Graphics2D) g;
+        
         if (character == null) {
             return;
         }
@@ -45,17 +61,27 @@ public class GameEngine {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
         
-        g.setColor(Color.red);
-        g.fillRect(
+        AffineTransform initialState = g2d.getTransform();
+        AffineTransform newState = new AffineTransform();
+        newState.rotate(character.getRotationAngle(),
+                character.getPositionX(),
+                character.getPositionY());
+        g2d.transform(newState);
+        
+        g2d.setColor(Color.red);
+        g2d.fillRect(
                 topLeftCornerX,
                 topLeftCornerY,
                 character.getSizeX(),
                 character.getSizeY());
-        g.setColor(Color.white);
-        g.drawString(
+        
+        g2d.setColor(Color.white);
+        g2d.drawString(
                 String.valueOf(character.getHealth()),
-                topLeftCornerX,
+                topLeftCornerX + character.getSizeX() / 2,
                 topLeftCornerY + character.getSizeY() / 2);
+        
+        g2d.setTransform(initialState);
 
     }
     
@@ -80,7 +106,7 @@ public class GameEngine {
         int screenHeight = gamePanel.getHeight();
         
         character = new Character(
-                100, screenWidth / 2, screenHeight / 2, 20, 20);
+                100, screenWidth / 2, screenHeight / 2, 50, 50);
     }
 
     public void run() {
