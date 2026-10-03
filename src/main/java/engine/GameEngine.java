@@ -1,6 +1,7 @@
 package engine;
 
 import entities.Character;
+import entities.Weapon;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import javax.swing.*;
@@ -50,23 +51,9 @@ public class GameEngine {
         updateCharacter();
     }
     
-    void drawCharacter(Graphics g) {
-        
-        Graphics2D g2d = (Graphics2D) g;
-        
-        if (character == null) {
-            return;
-        }
-        
+    void drawCharacterSprite(Graphics2D g2d) {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
-        
-        AffineTransform initialState = g2d.getTransform();
-        AffineTransform newState = new AffineTransform();
-        newState.rotate(character.getRotationAngle(),
-                character.getPositionX(),
-                character.getPositionY());
-        g2d.transform(newState);
         
         g2d.setColor(Color.red);
         g2d.fillRect(
@@ -78,8 +65,39 @@ public class GameEngine {
         g2d.setColor(Color.white);
         g2d.drawString(
                 String.valueOf(character.getHealth()),
-                topLeftCornerX + character.getSizeX() / 2,
+                topLeftCornerX,
                 topLeftCornerY + character.getSizeY() / 2);
+    }
+    
+    void drawWeaponSprite(Graphics2D g2d) {
+        Weapon currentWeapon = character.getCurrentWeapon();
+        if (currentWeapon != null) {
+            g2d.setColor(currentWeapon.getColor());
+            g2d.fillRect(character.getPositionX(),
+                    character.getPositionY() - currentWeapon.getHeight() / 2,
+                    currentWeapon.getWidth(),
+                    currentWeapon.getHeight());
+        }
+    }
+    
+    void drawCharacter(Graphics g) {
+        
+        Graphics2D g2d = (Graphics2D) g;
+        
+        if (character == null) {
+            return;
+        }
+        
+        AffineTransform initialState = g2d.getTransform();
+        AffineTransform newState = new AffineTransform();
+        newState.rotate(character.getRotationAngle(),
+                character.getPositionX(),
+                character.getPositionY());
+        g2d.transform(newState);
+        
+        drawCharacterSprite(g2d);
+        
+        drawWeaponSprite(g2d);
         
         g2d.setTransform(initialState);
 
@@ -107,6 +125,8 @@ public class GameEngine {
         
         character = new Character(
                 100, screenWidth / 2, screenHeight / 2, 50, 50);
+        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20);
+        character.addWeapon(startWeapon);
     }
 
     public void run() {
