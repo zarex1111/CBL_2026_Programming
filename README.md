@@ -14,6 +14,8 @@ A simple game in <strong>Java</strong>
     <ul>
       <li><strong>Character.java</strong> - OOP class for the character</li>
       <li><strong>Weapon.java</strong> - OOP class for the weapon</li>
+      <li><strong>Bullet.java</strong> - OOP basic class for bullet types</li>
+      <li><strong>MovingBullet</strong> - extending the Bullet class including movement mechanics</li>
     </ul>
   </li>
   <li><strong>windows</strong>
