@@ -6,9 +6,10 @@ import entities.MovingBullet;
 import entities.Weapon;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.event.KeyListener;
 import java.awt.geom.AffineTransform;
+import java.io.IOException;
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import windows.GameWindow;
 
@@ -76,29 +77,58 @@ public class GameEngine {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
         
-        g2d.setColor(Color.red);
-        g2d.fillRect(
-                topLeftCornerX,
-                topLeftCornerY,
-                character.getSizeX(),
-                character.getSizeY());
-        
-        g2d.setColor(Color.white);
-        g2d.drawString(
-                String.valueOf(character.getHealth()),
-                topLeftCornerX,
-                topLeftCornerY + character.getSizeY() / 2);
+        String imagePath = character.getImagePath();
+        if (imagePath == null) {
+            g2d.setColor(Color.red);
+            g2d.fillRect(
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    character.getSizeX(),
+                    character.getSizeY());
+        } else {
+            try {
+                Image characterImage = ImageIO.read(
+                        GameWindow.class.getResource(imagePath));
+                g2d.drawImage(characterImage,
+                        topLeftCornerX,
+                        topLeftCornerY,
+                        character.getSizeX(),
+                        character.getSizeY(),
+                        gamePanel);
+            } catch (IOException ex) {
+                System.out.println("Image set but not found");
+            }
+        }
     }
     
     void drawWeaponSprite(Graphics2D g2d) {
         Weapon currentWeapon = character.getCurrentWeapon();
         if (currentWeapon != null) {
-            g2d.setColor(currentWeapon.getColor());
-            g2d.fillRect(character.getPositionX(),
-                    character.getPositionY() - currentWeapon.getHeight() / 2,
-                    currentWeapon.getWidth(),
-                    currentWeapon.getHeight()
-            );
+            int topLeftCornerX = character.getPositionX();
+            int topLeftCornerY = character.getPositionY() 
+                    - currentWeapon.getHeight() / 2;
+            String imagePath = currentWeapon.getImagePath();
+            if (imagePath == null) {
+                g2d.setColor(currentWeapon.getColor());
+                g2d.fillRect(topLeftCornerX,
+                        topLeftCornerY,
+                        currentWeapon.getWidth(),
+                        currentWeapon.getHeight()
+                );
+            } else {
+                try {
+                    Image weaponImage = ImageIO.read(
+                            GameWindow.class.getResource(imagePath));
+                    g2d.drawImage(weaponImage,
+                            topLeftCornerX,
+                            topLeftCornerY,
+                            currentWeapon.getWidth(),
+                            currentWeapon.getHeight(),
+                            gamePanel);
+                } catch (IOException ex) {
+                    System.out.println("Image set but not found");
+                }
+            }
             g2d.setColor(Color.WHITE);
             g2d.setFont(new Font("Times New Roman",
                     Font.PLAIN,
@@ -126,9 +156,9 @@ public class GameEngine {
                 character.getPositionY());
         g2d.transform(newState);
         
-        drawCharacterSprite(g2d);
-        
         drawWeaponSprite(g2d);
+        
+        drawCharacterSprite(g2d);
         
         g2d.setTransform(initialState);
 
@@ -180,10 +210,13 @@ public class GameEngine {
         int screenHeight = gamePanel.getHeight();
         
         character = new Character(
-                100, screenWidth / 2, screenHeight / 2, 50, 50);
+                100, screenWidth / 2, screenHeight / 2, 100, 100);
+        character.setImagePath("default.png");
+        System.out.println(GameWindow.class.getResourceAsStream(character.getImagePath()));
         
         Bullet basicBullet = new Bullet(10, 10, 10, Color.yellow);
-        Weapon startWeapon = new Weapon(Color.BLACK, 40, 20, 40, basicBullet);
+        Weapon startWeapon = new Weapon(Color.BLACK, 50, 20, 40, basicBullet);
+        startWeapon.setImagePath("default.png");
         character.addWeapon(startWeapon);
         
         bullets = new ArrayList<>();
