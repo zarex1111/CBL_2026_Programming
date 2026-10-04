@@ -24,7 +24,7 @@ A simple game in <strong>Java</strong>
     </ul>
   </li>
 </ul>
-
+<h4>src/main/resources/images</h4> - sprites for the character and the weapon
 <h3>Run cycle logic</h3>
 When the game is started, an infinite cycle of updating and drawing elements based on given framerate begins.
 <h4>Run cycle guidelines</h4>
