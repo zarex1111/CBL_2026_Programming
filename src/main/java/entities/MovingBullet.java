@@ -21,9 +21,12 @@ public class MovingBullet extends Bullet {
     }
     
     public void move() {
-        int diffX = (int) (speed * Math.sin(angle));
-        int diffY = (int) (speed * Math.cos(angle));
+        // bullet movement has vector length <speed> with components
+        // speed * sin(a) and speed * cos(a)
+        int diffX = (int) (speed * Math.cos(angle));
+        int diffY = (int) (speed * Math.sin(angle));
         
+        // updating the position
         positionX += diffX;
         positionY += diffY;
     }
@@ -37,6 +40,7 @@ public class MovingBullet extends Bullet {
     }
     
     public boolean isOutOfBounds(int right, int bottom) {
+        // detecting bullet out of the screen
         return (positionX < 0 
                 || positionX >= right 
                 || positionY < 0 
