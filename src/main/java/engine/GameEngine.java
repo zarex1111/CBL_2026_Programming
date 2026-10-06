@@ -83,7 +83,7 @@ public class GameEngine {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
         
-        String imagePath = character.getImagePath();
+        String imagePath = character.getImagePath("character");
         if (imagePath == null) {
             // default representation of the character
             g2d.setColor(Color.red);
@@ -109,7 +109,7 @@ public class GameEngine {
             int topLeftCornerX = character.getPositionX();
             int topLeftCornerY = character.getPositionY() 
                     - currentWeapon.getHeight() / 2;
-            String imagePath = currentWeapon.getImagePath();
+            String imagePath = currentWeapon.getImagePath("weapon");
             if (imagePath == null) {
                 // default representation of the weapon
                 g2d.setColor(currentWeapon.getColor());
@@ -150,7 +150,7 @@ public class GameEngine {
         
         // rotating the whole game panel because the character is rotated
         AffineTransform initialState = g2d.getTransform();
-            AffineTransform newState = new AffineTransform();
+        AffineTransform newState = new AffineTransform();
         newState.rotate(character.getRotationAngle(),
                 character.getPositionX(),
                 character.getPositionY());
@@ -167,17 +167,32 @@ public class GameEngine {
     
     void drawBullets(Graphics g) {
         for (MovingBullet iterBullet : bullets) {
+            String imagePath = iterBullet.getImagePath("bullet");
             // default representation - an oval with border
-            g.setColor(iterBullet.getColor());
-            g.fillOval(iterBullet.getPositionX(),
-                    iterBullet.getPositionY(),
-                    iterBullet.getRadius(),
-                    iterBullet.getRadius());
-            g.setColor(Color.black);
-            g.drawOval(iterBullet.getPositionX(),
-                    iterBullet.getPositionY(),
-                    iterBullet.getRadius(),
-                    iterBullet.getRadius());
+            if (imagePath == null) {
+                g.setColor(iterBullet.getColor());
+                g.fillOval(iterBullet.getPositionX(),
+                        iterBullet.getPositionY(),
+                        iterBullet.getRadius(),
+                        iterBullet.getRadius());
+                g.setColor(Color.black);
+                g.drawOval(iterBullet.getPositionX(),
+                        iterBullet.getPositionY(),
+                        iterBullet.getRadius(),
+                        iterBullet.getRadius());
+            } else {
+                Sprite bulletSprite = new Sprite(imagePath);
+                
+                Graphics2D g2d = (Graphics2D) g;
+                
+                int radius = iterBullet.getRadius();
+                bulletSprite.draw(g2d,
+                        iterBullet.getPositionX() - radius,
+                        iterBullet.getPositionY() - radius,
+                        radius * 2,
+                        radius * 2,
+                        gamePanel);
+            }
         }
     }
     
@@ -221,6 +236,7 @@ public class GameEngine {
         
         // giving him a weapon
         Bullet basicBullet = new Bullet(10, 10, 10, Color.yellow);
+        basicBullet.setImagePath("default.png");
         Weapon startWeapon = new Weapon(Color.BLACK, 50, 20, 40, basicBullet);
         startWeapon.setImagePath("default.png");
         character.addWeapon(startWeapon);
