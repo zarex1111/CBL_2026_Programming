@@ -86,18 +86,13 @@ public class GameEngine {
                     character.getSizeX(),
                     character.getSizeY());
         } else {
-            try {
-                Image characterImage = ImageIO.read(
-                        GameWindow.class.getResource(imagePath));
-                g2d.drawImage(characterImage,
-                        topLeftCornerX,
-                        topLeftCornerY,
-                        character.getSizeX(),
-                        character.getSizeY(),
-                        gamePanel);
-            } catch (IOException ex) {
-                System.out.println("Image set but not found");
-            }
+            Sprite characterSprite = new Sprite(imagePath);
+            characterSprite.draw(g2d,
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    character.getSizeX(),
+                    character.getSizeY(),
+                    gamePanel);
         }
     }
     
@@ -116,18 +111,13 @@ public class GameEngine {
                         currentWeapon.getHeight()
                 );
             } else {
-                try {
-                    Image weaponImage = ImageIO.read(
-                            GameWindow.class.getResource(imagePath));
-                    g2d.drawImage(weaponImage,
-                            topLeftCornerX,
-                            topLeftCornerY,
-                            currentWeapon.getWidth(),
-                            currentWeapon.getHeight(),
-                            gamePanel);
-                } catch (IOException ex) {
-                    System.out.println("Image set but not found");
-                }
+                Sprite weaponSprite = new Sprite(imagePath);
+                weaponSprite.draw(g2d,
+                        topLeftCornerX,
+                        topLeftCornerY,
+                        currentWeapon.getWidth(),
+                        currentWeapon.getHeight(),
+                        gamePanel);
             }
             g2d.setColor(Color.WHITE);
             g2d.setFont(new Font("Times New Roman",
@@ -150,7 +140,7 @@ public class GameEngine {
         }
         
         AffineTransform initialState = g2d.getTransform();
-        AffineTransform newState = new AffineTransform();
+            AffineTransform newState = new AffineTransform();
         newState.rotate(character.getRotationAngle(),
                 character.getPositionX(),
                 character.getPositionY());
