@@ -10,6 +10,7 @@ public class MovingBullet extends Bullet {
 
     public MovingBullet(Bullet bulletType) {
         super(bulletType.damage, bulletType.radius, bulletType.speed, bulletType.color);
+        this.imageName = bulletType.imageName;
     }
     
     public void setMovingParametres(int positionX,
@@ -45,5 +46,9 @@ public class MovingBullet extends Bullet {
                 || positionX >= right 
                 || positionY < 0 
                 || positionY >= bottom);
+    }
+    
+    public double getAngle() {
+        return angle;
     }
 }

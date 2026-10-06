@@ -2,7 +2,7 @@ package entities;
 
 import java.util.ArrayList;
 
-public class Character {
+public class Character extends SpriteEntity {
 
     int health;
     double rotationAngle;
@@ -12,7 +12,6 @@ public class Character {
     int sizeY;
     ArrayList<Weapon> inventory;
     Weapon currentWeapon;
-    String imageName;
 
     public Character(
             int health, int positionX, int positionY, int sizeX, int sizeY) {
@@ -22,17 +21,6 @@ public class Character {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         inventory = new ArrayList<>();
-    }
-    
-    public void setImagePath(String s) {
-        imageName = s;
-    }
-    
-    public String getImagePath() {
-        if (imageName == "") {
-            return null;
-        }
-    return "/images/character/" + imageName;
     }
     
     public void setPosition(int x, int y) {
@@ -45,7 +33,7 @@ public class Character {
     }
     
     public int getPositionY() {
-        return positionX;
+        return positionY;
     }
     
     public int getSizeX() {

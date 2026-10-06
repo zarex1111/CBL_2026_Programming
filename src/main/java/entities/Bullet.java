@@ -3,7 +3,7 @@ package entities;
 import java.awt.Color;
 
 
-public class Bullet {
+public class Bullet extends SpriteEntity {
     int damage;
     int radius;
     double speed;

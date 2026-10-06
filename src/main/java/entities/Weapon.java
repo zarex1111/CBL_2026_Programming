@@ -3,13 +3,12 @@ package entities;
 import java.awt.Color;
 
 
-public class Weapon {
+public class Weapon extends SpriteEntity {
     Color color;
     int width;
     int height;
     int ammo;
     Bullet bulletType;
-    String imageName;
     
     public Weapon(Color color, int sizeX, int sizeY, int ammo, Bullet bulletType) {
         this.color = color;
@@ -17,17 +16,6 @@ public class Weapon {
         this.height = sizeY;
         this.ammo = ammo;
         this.bulletType = bulletType;
-    }
-    
-    public void setImagePath(String s) {
-        imageName = s;
-    }
-    
-    public String getImagePath() {
-        if (imageName == "") {
-            return null;
-        }
-        return "/images/weapon/" + imageName;
     }
     
     public int getAmmo() {
