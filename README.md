@@ -15,6 +15,7 @@ A simple game in <strong>Java</strong>
     <ul>
       <li><strong>Character.java</strong> - OOP class for the character</li>
       <li><strong>Weapon.java</strong> - OOP class for the weapon</li>
+      <li><strong>Enemy.java</strong> - OOP class for the enemy</li>
       <li><strong>Bullet.java</strong> - OOP basic class for bullet types</li>
       <li><strong>MovingBullet.java</strong> - extending the Bullet class including movement mechanics</li>
       <li><strong>SpriteEntity.java</strong> - adds the functionality of storing an image path and retrieving it for the all OOP classes</li>
@@ -26,7 +27,7 @@ A simple game in <strong>Java</strong>
     </ul>
   </li>
 </ul>
-<h4>src/main/resources/images</h4> - sprites for the character, the weapon ,the bullets
+<h4>src/main/resources/images</h4> - sprites for the character, the weapon, the bullets, the enemies
 <h3>Run cycle logic</h3>
 When the game is started, an infinite cycle of updating and drawing elements based on given framerate begins.
 <h4>Run cycle guidelines</h4>
