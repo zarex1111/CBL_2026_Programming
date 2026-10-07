@@ -2,6 +2,7 @@ package engine;
 
 import entities.Bullet;
 import entities.Character;
+import entities.Enemy;
 import entities.MovingBullet;
 import entities.Weapon;
 import java.awt.*;
@@ -15,6 +16,7 @@ public class GameEngine {
     
     Character character;
     ArrayList<MovingBullet> bullets;
+    ArrayList<Enemy> enemies;
     
     GameWindow gameWindow;
     GamePanel gamePanel;
@@ -34,6 +36,7 @@ public class GameEngine {
             super.paintComponent(g);
             drawBullets(g);
             drawCharacter(g);
+            drawEnemies(g);
         }
     }
     
@@ -73,10 +76,25 @@ public class GameEngine {
         }
         bullets.removeAll(forRemoval);
     }
+    
+    void updateEnemyRotationAngle(Enemy enemy) {
+        int diffX = character.getPositionX() - enemy.getPositionX();
+        int diffY = character.getPositionY() - enemy.getPositionY();
+        double newAngle = Math.atan2(diffY, diffX);
+        enemy.setRotationAngle(newAngle);
+    }
+    
+    void updateEnemies() {
+        for (Enemy iterEnemy : enemies) {
+            updateEnemyRotationAngle(iterEnemy);
+            iterEnemy.move();
+        }
+    }
 
     void update() {
         updateCharacter();
         updateBullets();
+        updateEnemies();
     }
     
     void drawCharacterSprite(Graphics2D g2d) {
@@ -140,6 +158,31 @@ public class GameEngine {
         }
     }
     
+    void drawEnemySprite(Graphics2D g2d, Enemy enemy) {
+        int topLeftCornerX = enemy.getPositionX() - enemy.getSizeX() / 2;
+        int topLeftCornerY = enemy.getPositionY() - enemy.getSizeY() / 2;
+        
+        String imagePath = enemy.getImagePath("enemy");
+        
+        if (imagePath == null) {
+            // default representation of the character
+            g2d.setColor(Color.red);
+            g2d.fillRect(
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    enemy.getSizeX(),
+                    enemy.getSizeY());
+        } else {
+            Sprite enemySprite = new Sprite(imagePath);
+            enemySprite.draw(g2d,
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    enemy.getSizeX(),
+                    enemy.getSizeY(),
+                    gamePanel);
+        }
+    }
+    
     void drawCharacter(Graphics g) {
         
         Graphics2D g2d = (Graphics2D) g;
@@ -196,6 +239,22 @@ public class GameEngine {
         }
     }
     
+    void drawEnemies(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        for (Enemy iterEnemy : enemies) {
+            AffineTransform initialState = g2d.getTransform();
+            AffineTransform newState = new AffineTransform();
+            newState.rotate(iterEnemy.getRotationAngle(), 
+                    iterEnemy.getPositionX(), 
+                    iterEnemy.getPositionY());
+            g2d.transform(newState);
+            
+            drawEnemySprite(g2d, iterEnemy);
+            
+            g2d.setTransform(initialState);
+        }
+    }
+    
     void draw() {
         // running an update on all elements drawn
         gameWindow.repaint();
@@ -243,6 +302,17 @@ public class GameEngine {
         
         // bullets stored in an arraylist for deleting them easily
         bullets = new ArrayList<>();
+        
+        enemies = new ArrayList<>();
+        
+        // spawning n enemies
+        int n = 3;
+        
+        for (int i = 0; i < n; i++) {
+            Enemy enemy = new Enemy(100, (i + 1) * 100, 10, 100, 100, 2);
+            enemies.add(enemy);
+            enemies.get(i).setImagePath("default.png");
+        }
     }
     
     void spawnBullet() {

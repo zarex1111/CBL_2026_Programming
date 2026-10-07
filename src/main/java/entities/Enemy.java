@@ -1,6 +1,6 @@
 package entities;
 
-public class Enemy extends SpriteEntity{
+public class Enemy extends SpriteEntity {
     
     int healthPoints;
     double rotationAngle;
@@ -10,7 +10,10 @@ public class Enemy extends SpriteEntity{
     int sizeY;
     double movementSpeed;
 
-    public Enemy(int healthPoints, int positionX, int positionY, int sizeX, int sizeY, double movementSpeed) {
+    public Enemy(int healthPoints,
+            int positionX, int positionY,
+            int sizeX, int sizeY,
+            double movementSpeed) {
         this.healthPoints = healthPoints;
         this.positionX = positionX;
         this.positionY = positionY;
