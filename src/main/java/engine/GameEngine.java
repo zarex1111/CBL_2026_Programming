@@ -200,6 +200,10 @@ public class GameEngine {
         gameWindow.repaint();
     }
     
+    void scrollInventory(int numberOfScrolls) {
+        character.scrollNWeapons(numberOfScrolls);
+    }
+    
     void constructWindow() {
         gameWindow = new GameWindow();
         gameWindow.setSize(500, 500);
@@ -214,6 +218,12 @@ public class GameEngine {
                 if (keyCode == KeyEvent.VK_SPACE) {
                     spawnBullet();
                 }
+            }
+        });
+        gameWindow.addMouseWheelListener(new MouseAdapter() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                scrollInventory(e.getScrollAmount());                
             }
         });
         
@@ -240,6 +250,13 @@ public class GameEngine {
         startWeapon.setImagePath("default.png");
         character.addWeapon(startWeapon);
         
+        //giving him a pink weapon
+        Bullet pinkBullet = new Bullet(10, 10, 10, Color.magenta);
+        pinkBullet.setImagePath("pink.png");
+        Weapon pinkWeapon = new Weapon(Color.magenta, 70, 10, 40, pinkBullet);
+        pinkWeapon.setImagePath("pink.png");
+        character.addWeapon(pinkWeapon);
+        
         // bullets stored in an arraylist for deleting them easily
         bullets = new ArrayList<>();
         
@@ -260,6 +277,11 @@ public class GameEngine {
         if (currentWeapon == null) {
             return;
         }
+        
+        if (!currentWeapon.hasAmmo()) {
+            return;
+        }
+        currentWeapon.shoot();
         
         // retrieving the position and the angle of the spawned bullet
         double algebraicAngle = character.getRotationAngle();

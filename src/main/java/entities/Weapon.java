@@ -40,4 +40,12 @@ public class Weapon extends Sprite {
     public Bullet getBulletType() {
         return bulletType;
     }
+    
+    public boolean hasAmmo() {
+        return (ammo > 0);
+    }
+    
+    public void shoot() {
+        ammo -= 1;
+    }
 }

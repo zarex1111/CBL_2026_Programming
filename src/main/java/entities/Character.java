@@ -71,5 +71,14 @@ public class Character extends Sprite {
     public Weapon getCurrentWeapon() {
         return currentWeapon;
     }
+    
+    public void scrollNWeapons(int times) {
+        int currentWeaponIndex = inventory.indexOf(currentWeapon);
+        if (times > 0) {
+            currentWeapon = inventory.get((currentWeaponIndex + 1) % 2);
+        } else {
+            currentWeapon = inventory.get((currentWeaponIndex - 1) % 2);
+        }
+    }
 
 }
