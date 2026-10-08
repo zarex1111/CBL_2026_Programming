@@ -1,7 +1,9 @@
 package engine;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.geom.AffineTransform;
 import java.awt.image.ImageObserver;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -56,7 +58,34 @@ public class Sprite {
             int topLeftCornerY,
             int width,
             int height,
+            ImageObserver gamePanel,
+            double rotationAngle,
+            int angleAnchorX,
+            int angleAnchorY) {
+        AffineTransform newState = new AffineTransform();
+        newState.rotate(rotationAngle, 
+                angleAnchorX, 
+                angleAnchorY);
+        g2d.transform(newState);
+        
+        draw(g2d, topLeftCornerX, topLeftCornerY, width, height, gamePanel);
+    }
+    
+    public void draw(Graphics2D g2d,
+            int topLeftCornerX,
+            int topLeftCornerY,
+            int width,
+            int height,
             ImageObserver gamePanel) {
+        if (spriteImage == null) {
+            // the default sprite - a pink rectangle
+            g2d.setColor(Color.MAGENTA);
+            g2d.fillRect(
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    width,
+                    height);
+        }
         g2d.drawImage(spriteImage,
                 topLeftCornerX,
                 topLeftCornerY,

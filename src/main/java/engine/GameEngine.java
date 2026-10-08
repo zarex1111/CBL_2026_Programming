@@ -101,23 +101,17 @@ public class GameEngine {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
         
-        String imagePath = character.getImagePath();
-        if (imagePath == null) {
-            // default representation of the character
-            g2d.setColor(Color.red);
-            g2d.fillRect(
-                    topLeftCornerX,
-                    topLeftCornerY,
-                    character.getSizeX(),
-                    character.getSizeY());
-        } else {
-            character.draw(g2d,
-                    topLeftCornerX,
-                    topLeftCornerY,
-                    character.getSizeX(),
-                    character.getSizeY(),
-                    gamePanel);
-        }
+        AffineTransform initialState = g2d.getTransform();
+        character.draw(g2d,
+                topLeftCornerX,
+                topLeftCornerY,
+                character.getSizeX(),
+                character.getSizeY(),
+                gamePanel,
+                character.getRotationAngle(),
+                character.getPositionX(),
+                character.getPositionY());
+        g2d.setTransform(initialState);
     }
     
     void drawWeaponSprite(Graphics2D g2d) {
@@ -126,33 +120,17 @@ public class GameEngine {
             int topLeftCornerX = character.getPositionX();
             int topLeftCornerY = character.getPositionY() 
                     - currentWeapon.getHeight() / 2;
-            String imagePath = currentWeapon.getImagePath();
-            if (imagePath == null) {
-                // default representation of the weapon
-                g2d.setColor(currentWeapon.getColor());
-                g2d.fillRect(topLeftCornerX,
-                        topLeftCornerY,
-                        currentWeapon.getWidth(),
-                        currentWeapon.getHeight()
-                );
-            } else {
-                currentWeapon.draw(g2d,
-                        topLeftCornerX,
-                        topLeftCornerY,
-                        currentWeapon.getWidth(),
-                        currentWeapon.getHeight(),
-                        gamePanel);
-            }
-            // drawing the ammo (DEPRECATED?)
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Times New Roman",
-                    Font.PLAIN,
-                    currentWeapon.getHeight() / 2)
-            );
-            g2d.drawString(String.valueOf(currentWeapon.getAmmo()),
-                    character.getPositionX() + currentWeapon.getWidth() / 4,
-                    character.getPositionY()
-            );
+            AffineTransform initialState = g2d.getTransform();
+            currentWeapon.draw(g2d,
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    currentWeapon.getWidth(),
+                    currentWeapon.getHeight(),
+                    gamePanel,
+                    character.getRotationAngle(),
+                    character.getPositionX(),
+                    character.getPositionY());
+            g2d.setTransform(initialState);
         }
     }
     
@@ -160,24 +138,17 @@ public class GameEngine {
         int topLeftCornerX = enemy.getPositionX() - enemy.getSizeX() / 2;
         int topLeftCornerY = enemy.getPositionY() - enemy.getSizeY() / 2;
         
-        String imagePath = enemy.getImagePath();
-        
-        if (imagePath == null) {
-            // default representation of the character
-            g2d.setColor(Color.red);
-            g2d.fillRect(
-                    topLeftCornerX,
-                    topLeftCornerY,
-                    enemy.getSizeX(),
-                    enemy.getSizeY());
-        } else {
-            enemy.draw(g2d,
-                    topLeftCornerX,
-                    topLeftCornerY,
-                    enemy.getSizeX(),
-                    enemy.getSizeY(),
-                    gamePanel);
-        }
+        AffineTransform initialState = g2d.getTransform();
+        enemy.draw(g2d,
+                topLeftCornerX,
+                topLeftCornerY,
+                enemy.getSizeX(),
+                enemy.getSizeY(),
+                gamePanel,
+                enemy.getRotationAngle(),
+                enemy.getPositionX(),
+                enemy.getPositionY());
+        g2d.setTransform(initialState);
     }
     
     void drawCharacter(Graphics g) {
@@ -188,20 +159,9 @@ public class GameEngine {
             return;
         }
         
-        // rotating the whole game panel because the character is rotated
-        AffineTransform initialState = g2d.getTransform();
-        AffineTransform newState = new AffineTransform();
-        newState.rotate(character.getRotationAngle(),
-                character.getPositionX(),
-                character.getPositionY());
-        g2d.transform(newState);
-        
-        // and only then drawing the character and his weapon horizontally
         drawWeaponSprite(g2d);
         
         drawCharacterSprite(g2d);
-        
-        g2d.setTransform(initialState);
 
     }
     
@@ -210,47 +170,28 @@ public class GameEngine {
             return;
         }
         for (MovingBullet iterBullet : bullets) {
-            String imagePath = iterBullet.getImagePath();
-            // default representation - an oval with border
-            if (imagePath == null) {
-                g.setColor(iterBullet.getColor());
-                g.fillOval(iterBullet.getPositionX(),
-                        iterBullet.getPositionY(),
-                        iterBullet.getRadius(),
-                        iterBullet.getRadius());
-                g.setColor(Color.black);
-                g.drawOval(iterBullet.getPositionX(),
-                        iterBullet.getPositionY(),
-                        iterBullet.getRadius(),
-                        iterBullet.getRadius());
-            } else {
-                
-                Graphics2D g2d = (Graphics2D) g;
-                
-                int radius = iterBullet.getRadius();
-                iterBullet.draw(g2d,
-                        iterBullet.getPositionX() - radius,
-                        iterBullet.getPositionY() - radius,
-                        radius * 2,
-                        radius * 2,
-                        gamePanel);
-            }
+            Graphics2D g2d = (Graphics2D) g;
+            
+            int radius = iterBullet.getRadius();
+            iterBullet.draw(g2d,
+                    iterBullet.getPositionX() - radius,
+                    iterBullet.getPositionY() - radius,
+                    radius * 2,
+                    radius * 2,
+                    gamePanel);
         }
     }
     
     void drawEnemies(Graphics g) {
+        if (enemies == null) {
+            return;
+        }
+        
         Graphics2D g2d = (Graphics2D) g;
         for (Enemy iterEnemy : enemies) {
-            AffineTransform initialState = g2d.getTransform();
-            AffineTransform newState = new AffineTransform();
-            newState.rotate(iterEnemy.getRotationAngle(), 
-                    iterEnemy.getPositionX(), 
-                    iterEnemy.getPositionY());
-            g2d.transform(newState);
-            
+
             drawEnemySprite(g2d, iterEnemy);
-            
-            g2d.setTransform(initialState);
+
         }
     }
     
