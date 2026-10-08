@@ -101,7 +101,7 @@ public class GameEngine {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
         
-        String imagePath = character.getImagePath("character");
+        String imagePath = character.getImagePath();
         if (imagePath == null) {
             // default representation of the character
             g2d.setColor(Color.red);
@@ -111,8 +111,7 @@ public class GameEngine {
                     character.getSizeX(),
                     character.getSizeY());
         } else {
-            Sprite characterSprite = new Sprite(imagePath);
-            characterSprite.draw(g2d,
+            character.draw(g2d,
                     topLeftCornerX,
                     topLeftCornerY,
                     character.getSizeX(),
@@ -127,7 +126,7 @@ public class GameEngine {
             int topLeftCornerX = character.getPositionX();
             int topLeftCornerY = character.getPositionY() 
                     - currentWeapon.getHeight() / 2;
-            String imagePath = currentWeapon.getImagePath("weapon");
+            String imagePath = currentWeapon.getImagePath();
             if (imagePath == null) {
                 // default representation of the weapon
                 g2d.setColor(currentWeapon.getColor());
@@ -137,8 +136,7 @@ public class GameEngine {
                         currentWeapon.getHeight()
                 );
             } else {
-                Sprite weaponSprite = new Sprite(imagePath);
-                weaponSprite.draw(g2d,
+                currentWeapon.draw(g2d,
                         topLeftCornerX,
                         topLeftCornerY,
                         currentWeapon.getWidth(),
@@ -162,7 +160,7 @@ public class GameEngine {
         int topLeftCornerX = enemy.getPositionX() - enemy.getSizeX() / 2;
         int topLeftCornerY = enemy.getPositionY() - enemy.getSizeY() / 2;
         
-        String imagePath = enemy.getImagePath("enemy");
+        String imagePath = enemy.getImagePath();
         
         if (imagePath == null) {
             // default representation of the character
@@ -173,8 +171,7 @@ public class GameEngine {
                     enemy.getSizeX(),
                     enemy.getSizeY());
         } else {
-            Sprite enemySprite = new Sprite(imagePath);
-            enemySprite.draw(g2d,
+            enemy.draw(g2d,
                     topLeftCornerX,
                     topLeftCornerY,
                     enemy.getSizeX(),
@@ -209,8 +206,11 @@ public class GameEngine {
     }
     
     void drawBullets(Graphics g) {
+        if (bullets == null) {
+            return;
+        }
         for (MovingBullet iterBullet : bullets) {
-            String imagePath = iterBullet.getImagePath("bullet");
+            String imagePath = iterBullet.getImagePath();
             // default representation - an oval with border
             if (imagePath == null) {
                 g.setColor(iterBullet.getColor());
@@ -224,12 +224,11 @@ public class GameEngine {
                         iterBullet.getRadius(),
                         iterBullet.getRadius());
             } else {
-                Sprite bulletSprite = new Sprite(imagePath);
                 
                 Graphics2D g2d = (Graphics2D) g;
                 
                 int radius = iterBullet.getRadius();
-                bulletSprite.draw(g2d,
+                iterBullet.draw(g2d,
                         iterBullet.getPositionX() - radius,
                         iterBullet.getPositionY() - radius,
                         radius * 2,

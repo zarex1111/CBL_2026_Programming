@@ -1,7 +1,5 @@
 package entities;
 
-import java.awt.Color;
-
 public class MovingBullet extends Bullet {
     
     int positionX;
@@ -10,7 +8,9 @@ public class MovingBullet extends Bullet {
 
     public MovingBullet(Bullet bulletType) {
         super(bulletType.damage, bulletType.radius, bulletType.speed, bulletType.color);
-        this.imageName = bulletType.imageName;
+        
+        setDefaultFolder(bulletType.getDefaultFolder());
+        setImagePath(bulletType.getImageName());
     }
     
     public void setMovingParametres(int positionX,
