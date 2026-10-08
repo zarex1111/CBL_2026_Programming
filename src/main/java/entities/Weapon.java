@@ -1,9 +1,10 @@
 package entities;
 
+import engine.Sprite;
 import java.awt.Color;
 
 
-public class Weapon extends SpriteEntity {
+public class Weapon extends Sprite {
     Color color;
     int width;
     int height;
@@ -16,6 +17,8 @@ public class Weapon extends SpriteEntity {
         this.height = sizeY;
         this.ammo = ammo;
         this.bulletType = bulletType;
+        
+        setDefaultFolder("weapon");
     }
     
     public int getAmmo() {

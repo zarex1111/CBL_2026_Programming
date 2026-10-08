@@ -1,8 +1,9 @@
 package entities;
 
+import engine.Sprite;
 import java.util.ArrayList;
 
-public class Character extends SpriteEntity {
+public class Character extends Sprite {
 
     int health;
     double rotationAngle;
@@ -21,6 +22,8 @@ public class Character extends SpriteEntity {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         inventory = new ArrayList<>();
+        
+        setDefaultFolder("character");
     }
     
     public void setPosition(int x, int y) {

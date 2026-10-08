@@ -1,6 +1,8 @@
 package entities;
 
-public class Enemy extends SpriteEntity {
+import engine.Sprite;
+
+public class Enemy extends Sprite {
     
     int healthPoints;
     double rotationAngle;
@@ -20,6 +22,8 @@ public class Enemy extends SpriteEntity {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.movementSpeed = movementSpeed;
+        
+        setDefaultFolder("enemy");
     }
     
     public void setPosition(int x, int y) {
