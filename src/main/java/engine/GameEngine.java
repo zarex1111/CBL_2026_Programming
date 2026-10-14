@@ -113,8 +113,16 @@ public class GameEngine {
         character.setRotationAngle(newAngle);
     }
     
+    void updateCurrentWeapon() {
+        Weapon currentWeapon = character.getCurrentWeapon();
+        if (currentWeapon != null) {
+            currentWeapon.reduceCooldown();
+        }
+    }
+    
     void updateCharacter() {
         updateCharacterRotationAngle();
+        updateCurrentWeapon();
     }
     
     void updateBullets() {
@@ -468,7 +476,7 @@ public class GameEngine {
     
     void spawnBullet() {
         Weapon currentWeapon = character.getCurrentWeapon();
-        if (currentWeapon == null) {
+        if (currentWeapon == null || currentWeapon.onCooldown()) {
             return;
         }
         
@@ -489,6 +497,7 @@ public class GameEngine {
                 algebraicAngle
         );
         bullets.add(newBullet);
+        currentWeapon.shoot();
     }
     
     Rectangle getCharacterBounds() {
