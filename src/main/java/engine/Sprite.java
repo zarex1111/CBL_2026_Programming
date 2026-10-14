@@ -27,6 +27,10 @@ public class Sprite {
         }
     }
     
+    public Image getImage() {
+        return spriteImage;
+    }
+    
     public String getImageName() {
         return imageName;
     }
