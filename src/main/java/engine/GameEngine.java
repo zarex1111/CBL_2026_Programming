@@ -113,8 +113,16 @@ public class GameEngine {
         character.setRotationAngle(newAngle);
     }
     
+    void updateCurrentWeapon() {
+        Weapon currentWeapon = character.getCurrentWeapon();
+        if (currentWeapon != null) {
+            currentWeapon.reduceCooldown();
+        }
+    }
+    
     void updateCharacter() {
         updateCharacterRotationAngle();
+        updateCurrentWeapon();
     }
     
     void updateBullets() {
@@ -468,7 +476,7 @@ public class GameEngine {
     
     void spawnBullet() {
         Weapon currentWeapon = character.getCurrentWeapon();
-        if (currentWeapon == null) {
+        if (currentWeapon == null || currentWeapon.onCooldown()) {
             return;
         }
         
@@ -489,6 +497,75 @@ public class GameEngine {
                 algebraicAngle
         );
         bullets.add(newBullet);
+        currentWeapon.shoot();
+    }
+    
+    Rectangle getCharacterBounds() {
+        int width = character.getSizeX();
+        int height = character.getSizeY();
+        int padding = 80; // Adjust this value as needed (e.g., 10 to 30)
+        int boxWidth = width - padding;
+        int boxHeight = height - padding;
+        int x = character.getPositionX() - boxWidth / 2;
+        int y = character.getPositionY() - boxHeight / 2;
+        return new Rectangle(x, y, boxWidth, boxHeight);
+    }
+    
+    Rectangle getEnemyBounds(Enemy enemy) {
+        int width = enemy.getSizeX();
+        int height = enemy.getSizeY();
+        int padding = 30; // Adjust this value as needed (e.g., 10 to 30)
+        int boxWidth = width - padding;
+        int boxHeight = height - padding;
+        int x = enemy.getPositionX() - boxWidth / 2;
+        int y = enemy.getPositionY() - boxHeight / 2;
+        return new Rectangle(x, y, boxWidth, boxHeight);
+    }
+    
+    Rectangle getBulletBounds(MovingBullet bullet) {
+        int radius = bullet.getRadius();
+        int x = bullet.getPositionX();
+        int y = bullet.getPositionY();
+        return new Rectangle(x, y, radius * 2, radius * 2);
+    }
+    
+    void checkCollisions() {
+        
+        Rectangle characterBounds = getCharacterBounds();
+        ArrayList<MovingBullet> hitBullets = new ArrayList<>();
+        ArrayList<Enemy> deadEnemies = new ArrayList<>();
+        
+        for (MovingBullet bullet : bullets) {
+            Rectangle bulletBounds = getBulletBounds(bullet);
+            
+            for (Enemy enemy : enemies) {
+                Rectangle enemyBounds = getEnemyBounds(enemy);
+                
+                if (bulletBounds.intersects(enemyBounds)) {
+                    hitBullets.add(bullet);
+                    deadEnemies.add(enemy);
+                    break;
+                }
+            }
+        }
+        
+        for (Enemy enemy : enemies) {
+            Rectangle enemyBounds = getEnemyBounds(enemy);
+            
+            if (characterBounds.intersects(enemyBounds)) {
+                character.setHealth(character.getHealth() - 10);
+                if (character.getHealth() <= 0) {
+                    gameState = gameOverState;
+                }
+            }
+        }
+        
+        bullets.removeAll(hitBullets);
+        enemies.removeAll(deadEnemies);
+    }
+    
+    void resetRound() {
+        createEntities();
     }
     
     Rectangle getCharacterBounds() {
