@@ -468,7 +468,16 @@ public class GameEngine {
         enemies = new ArrayList<>();
         
         for (int i = 0; i < n; i++) {
-            Enemy enemy = new Enemy(100, screenWidth / (n + 1) * (i + 1), 10, 126, 100, 4);
+            int[][] possiblePositions = new int[][] {
+                new int[] {0, (int) (Math.random() * screenHeight)},
+                new int[] {screenWidth, (int) (Math.random() * screenHeight)},
+                new int[] {(int) (Math.random() * screenWidth), 0},
+                new int[] {(int) (Math.random() * screenWidth), screenHeight}
+            };
+            int[] position = possiblePositions[(int) (Math.random() * 4)];
+            int posX = position[0];
+            int posY = position[1];
+            Enemy enemy = new Enemy(100, posX, posY, 126, 100, 4);
             enemies.add(enemy);
             enemies.get(i).setImagePath("default.png");
         }
