@@ -8,11 +8,17 @@ import entities.Weapon;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import java.util.ArrayList;
 import javax.swing.*;
 import windows.GameWindow;
 
 public class GameEngine {
+    
+    public int screenWidth;
+    public int screenHeight;
+    private Image background;
     
     Character character;
     ArrayList<MovingBullet> bullets;
@@ -21,22 +27,71 @@ public class GameEngine {
     GameWindow gameWindow;
     GamePanel gamePanel;
     
+    public int gameState = 0;
+    
+    public final int titleState = 0;
+    public final int pausedState = 1;
+    public final int playState = 2;
+    public final int storeState = 3;
+    public final int inventoryState = 4;
+    public final int gameOverState = 5;
+    
+    public int roundCounter = 0;
+    
     static int FRAMES_PER_SECOND;
     static int TARGET_TIME;
     
     public GameEngine(int fps) {
         FRAMES_PER_SECOND = fps;
         TARGET_TIME = (int) (1000.0 / FRAMES_PER_SECOND);
+        
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        screenWidth = screenSize.width;
+        screenHeight = screenSize.height;
     }
     
     class GamePanel extends JPanel {
+        
+        public GamePanel() {
+            this.setPreferredSize(new Dimension(screenWidth, screenHeight));
+            this.setBackground(Color.black);
+            this.setOpaque(true);
+        }
+        
+        
         // redefining the default paintMathod so it draws our sprites
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            drawBullets(g);
-            drawCharacter(g);
-            drawEnemies(g);
+            
+            switch (gameState) {
+                case titleState:
+                    drawTitleScreen(g);
+                    break;
+                case playState:
+                    drawPlayScreen(g);
+                    break;
+                case pausedState:
+                    drawPausedScreen(g);
+                    break;
+                case gameOverState:
+                    drawGameOverScreen(g);
+                    break;
+                default:
+                    break;
+            }
+            
+            /*if (gameState == titleState) {
+                drawTitleScreen(g);
+            } else if (gameState == playState){
+                drawBackgroundScreen(g);
+                drawBullets(g);
+                drawCharacter(g);
+                drawEnemies(g);
+            } else if (gameState == pausedState) {
+                drawBackgroundScreen(g);
+                drawCharacter(g);
+            }*/
         }
     }
     
@@ -93,25 +148,114 @@ public class GameEngine {
 
     void update() {
         updateCharacter();
-        updateBullets();
-        updateEnemies();
+        if (gameState == 2) {
+            if (enemies.isEmpty()) {
+                roundCounter++;
+                gameState = pausedState;
+            } else {
+                updateEnemies();
+                updateBullets();
+                checkCollisions();
+            }
+        }
+    }
+    
+    void drawTitleScreen(Graphics g) {
+        g.setColor(Color.black);
+        g.fillRect(0, 0, screenWidth, screenHeight);
+        
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 120F));
+        String text = "Zombie Shooter";
+        int textWidth = g.getFontMetrics().stringWidth(text);
+        g.drawString(text, (screenWidth - textWidth) / 2, screenHeight / 2 - 100);
+        
+        
+        g.setColor(Color.white);
+        g.drawString(text, 200, 360);
+        
+        g.setFont(g.getFont().deriveFont(Font.ITALIC, 40F));
+        text = "Press Space to start";
+        textWidth = g.getFontMetrics().stringWidth(text);
+        g.drawString(text, (screenWidth - textWidth) / 2, screenHeight / 2 + 100);
+    }
+    
+    void drawPlayScreen(Graphics g) {
+        drawBackgroundScreen(g);
+        drawBullets(g);
+        drawCharacter(g);
+        drawEnemies(g);
+    }
+    
+    void drawPausedScreen(Graphics g) {
+        drawBackgroundScreen(g);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 25F));
+        String text = "Press B to begin round";
+        
+        g.setColor(Color.black);
+        g.drawString(text, 30, 700);
+        drawCharacter(g);
+    }
+    
+    void drawGameOverScreen(Graphics g) {
+        drawBackgroundScreen(g);
+        drawCharacter(g);
+        
+        g.setColor(new Color(0, 0, 0));
+        g.fillRect(0, 0, screenWidth, screenHeight);
+        
+        g.setColor(Color.red);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 160F));
+        String text = "GAME OVER";
+        int textWidth = g.getFontMetrics().stringWidth(text);
+        g.drawString(text, (screenWidth - textWidth) / 2, screenHeight / 2 - 20);
+        
+        g.setColor(Color.white);
+        g.setFont(g.getFont().deriveFont(Font.ITALIC, 40F));
+        text = "Press Space to restart";
+        textWidth = g.getFontMetrics().stringWidth(text);
+        g.drawString(text, (screenWidth - textWidth) / 2, screenHeight / 2 + 160);
+        
+        g.setColor(Color.white);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 25F));
+        text = "Rounds survived: " + Integer.toString(roundCounter);
+        g.drawString(text, screenWidth - 250, 30);
+    }
+    
+    void drawBackgroundScreen(Graphics g) {
+        if (background != null) {
+            g.drawImage(background, 0, 0, screenWidth, screenHeight, gamePanel);
+        } else {
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(0, 0, screenWidth, screenHeight);
+        }
+        
+        g.setColor(Color.black);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 25F));
+        String text = "Rounds survived: " + Integer.toString(roundCounter);
+        g.drawString(text, screenWidth - 250, 30);
     }
     
     void drawCharacterSprite(Graphics2D g2d) {
         int topLeftCornerX = character.getPositionX() - character.getSizeX() / 2;
         int topLeftCornerY = character.getPositionY() - character.getSizeY() / 2;
         
-        AffineTransform initialState = g2d.getTransform();
-        character.draw(g2d,
-                topLeftCornerX,
-                topLeftCornerY,
-                character.getSizeX(),
-                character.getSizeY(),
-                gamePanel,
-                character.getRotationAngle(),
-                character.getPositionX(),
-                character.getPositionY());
-        g2d.setTransform(initialState);
+        String imagePath = character.getImagePath("character");
+        if (imagePath == null) {
+            // default representation of the character
+            g2d.setColor(Color.red);
+            g2d.fillRect(
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    character.getSizeX(),
+                    character.getSizeY());
+        } else {
+            character.draw(g2d,
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    character.getSizeX(),
+                    character.getSizeY(),
+                    gamePanel);
+        }
     }
     
     void drawWeaponSprite(Graphics2D g2d) {
@@ -120,17 +264,33 @@ public class GameEngine {
             int topLeftCornerX = character.getPositionX();
             int topLeftCornerY = character.getPositionY() 
                     - currentWeapon.getHeight() / 2;
-            AffineTransform initialState = g2d.getTransform();
-            currentWeapon.draw(g2d,
-                    topLeftCornerX,
-                    topLeftCornerY,
-                    currentWeapon.getWidth(),
-                    currentWeapon.getHeight(),
-                    gamePanel,
-                    character.getRotationAngle(),
-                    character.getPositionX(),
-                    character.getPositionY());
-            g2d.setTransform(initialState);
+            String imagePath = currentWeapon.getImagePath("weapon");
+            if (imagePath == null) {
+                // default representation of the weapon
+                g2d.setColor(currentWeapon.getColor());
+                g2d.fillRect(topLeftCornerX,
+                        topLeftCornerY,
+                        currentWeapon.getWidth(),
+                        currentWeapon.getHeight()
+                );
+            } else {
+                currentWeapon.draw(g2d,
+                        topLeftCornerX,
+                        topLeftCornerY,
+                        currentWeapon.getWidth(),
+                        currentWeapon.getHeight(),
+                        gamePanel);
+            }
+            // drawing the ammo (DEPRECATED?)
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Times New Roman",
+                    Font.PLAIN,
+                    currentWeapon.getHeight() / 2)
+            );
+            g2d.drawString(String.valueOf(currentWeapon.getAmmo()),
+                    character.getPositionX() + currentWeapon.getWidth() / 4,
+                    character.getPositionY()
+            );
         }
     }
     
@@ -138,17 +298,24 @@ public class GameEngine {
         int topLeftCornerX = enemy.getPositionX() - enemy.getSizeX() / 2;
         int topLeftCornerY = enemy.getPositionY() - enemy.getSizeY() / 2;
         
-        AffineTransform initialState = g2d.getTransform();
-        enemy.draw(g2d,
-                topLeftCornerX,
-                topLeftCornerY,
-                enemy.getSizeX(),
-                enemy.getSizeY(),
-                gamePanel,
-                enemy.getRotationAngle(),
-                enemy.getPositionX(),
-                enemy.getPositionY());
-        g2d.setTransform(initialState);
+        String imagePath = enemy.getImagePath("enemy");
+        
+        if (imagePath == null) {
+            // default representation of the character
+            g2d.setColor(Color.red);
+            g2d.fillRect(
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    enemy.getSizeX(),
+                    enemy.getSizeY());
+        } else {
+            enemy.draw(g2d,
+                    topLeftCornerX,
+                    topLeftCornerY,
+                    enemy.getSizeX(),
+                    enemy.getSizeY(),
+                    gamePanel);
+        }
     }
     
     void drawCharacter(Graphics g) {
@@ -159,39 +326,66 @@ public class GameEngine {
             return;
         }
         
+        // rotating the whole game panel because the character is rotated
+        AffineTransform initialState = g2d.getTransform();
+        AffineTransform newState = new AffineTransform();
+        newState.rotate(character.getRotationAngle(),
+                character.getPositionX(),
+                character.getPositionY());
+        g2d.transform(newState);
+        
+        // and only then drawing the character and his weapon horizontally
         drawWeaponSprite(g2d);
         
         drawCharacterSprite(g2d);
+        
+        g2d.setTransform(initialState);
 
     }
     
     void drawBullets(Graphics g) {
-        if (bullets == null) {
-            return;
-        }
         for (MovingBullet iterBullet : bullets) {
-            Graphics2D g2d = (Graphics2D) g;
-            
-            int radius = iterBullet.getRadius();
-            iterBullet.draw(g2d,
-                    iterBullet.getPositionX() - radius,
-                    iterBullet.getPositionY() - radius,
-                    radius * 2,
-                    radius * 2,
-                    gamePanel);
+            String imagePath = iterBullet.getImagePath("bullet");
+            // default representation - an oval with border
+            if (imagePath == null) {
+                g.setColor(iterBullet.getColor());
+                g.fillOval(iterBullet.getPositionX(),
+                        iterBullet.getPositionY(),
+                        iterBullet.getRadius(),
+                        iterBullet.getRadius());
+                g.setColor(Color.black);
+                g.drawOval(iterBullet.getPositionX(),
+                        iterBullet.getPositionY(),
+                        iterBullet.getRadius(),
+                        iterBullet.getRadius());
+            } else {
+                
+                Graphics2D g2d = (Graphics2D) g;
+                
+                int radius = iterBullet.getRadius();
+                iterBullet.draw(g2d,
+                        iterBullet.getPositionX() - radius,
+                        iterBullet.getPositionY() - radius,
+                        radius * 2,
+                        radius * 2,
+                        gamePanel);
+            }
         }
     }
     
     void drawEnemies(Graphics g) {
-        if (enemies == null) {
-            return;
-        }
-        
         Graphics2D g2d = (Graphics2D) g;
         for (Enemy iterEnemy : enemies) {
-
+            AffineTransform initialState = g2d.getTransform();
+            AffineTransform newState = new AffineTransform();
+            newState.rotate(iterEnemy.getRotationAngle(), 
+                    iterEnemy.getPositionX(), 
+                    iterEnemy.getPositionY());
+            g2d.transform(newState);
+            
             drawEnemySprite(g2d, iterEnemy);
-
+            
+            g2d.setTransform(initialState);
         }
     }
     
@@ -200,13 +394,9 @@ public class GameEngine {
         gameWindow.repaint();
     }
     
-    void scrollInventory(int numberOfScrolls) {
-        character.scrollNWeapons(numberOfScrolls);
-    }
-    
     void constructWindow() {
         gameWindow = new GameWindow();
-        gameWindow.setSize(500, 500);
+        gameWindow.setSize(screenWidth, screenHeight);
         gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameWindow.setTitle("GAME");
         
@@ -215,15 +405,18 @@ public class GameEngine {
             @Override
             public void keyPressed(KeyEvent e) {
                 int keyCode = e.getKeyCode();
-                if (keyCode == KeyEvent.VK_SPACE) {
+                if (gameState == 0 && keyCode == KeyEvent.VK_SPACE) {
+                    gameState = pausedState;
+                } else if (keyCode == KeyEvent.VK_SPACE && gameState == playState) {
                     spawnBullet();
+                } else if (keyCode == KeyEvent.VK_B && gameState == pausedState) {
+                    createEntities();
+                    gameState = playState;
+                } else if (keyCode == KeyEvent.VK_SPACE && gameState == gameOverState) {
+                    gameState = pausedState;
+                    roundCounter = 0;
+                    resetRound();
                 }
-            }
-        });
-        gameWindow.addMouseWheelListener(new MouseAdapter() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                scrollInventory(e.getScrollAmount());                
             }
         });
         
@@ -238,9 +431,16 @@ public class GameEngine {
         int screenWidth = gamePanel.getWidth();
         int screenHeight = gamePanel.getHeight();
         
+        String imagePath = "/images/backgrounds/defaultBackground.png";
+        try {
+            background = ImageIO.read(GameWindow.class.getResource(imagePath));
+        } catch (IOException ex) {
+            System.out.println("Image not found");
+        }
+        
         // creating a character
         character = new Character(
-                100, screenWidth / 2, screenHeight / 2, 100, 100);
+                2000, screenWidth / 2, screenHeight / 2, 100, 100);
         character.setImagePath("default.png");
         
         // giving him a weapon
@@ -250,23 +450,17 @@ public class GameEngine {
         startWeapon.setImagePath("default.png");
         character.addWeapon(startWeapon);
         
-        //giving him a pink weapon
-        Bullet pinkBullet = new Bullet(10, 10, 10, Color.magenta);
-        pinkBullet.setImagePath("pink.png");
-        Weapon pinkWeapon = new Weapon(Color.magenta, 70, 10, 40, pinkBullet);
-        pinkWeapon.setImagePath("pink.png");
-        character.addWeapon(pinkWeapon);
-        
         // bullets stored in an arraylist for deleting them easily
         bullets = new ArrayList<>();
         
+        createEnemies(3 + roundCounter);
+    }
+    
+    void createEnemies(int n) {
         enemies = new ArrayList<>();
         
-        // spawning n enemies
-        int n = 3;
-        
         for (int i = 0; i < n; i++) {
-            Enemy enemy = new Enemy(100, (i + 1) * 100, 10, 100, 100, 2);
+            Enemy enemy = new Enemy(100, screenWidth / (n + 1) * (i + 1), 10, 126, 100, 4);
             enemies.add(enemy);
             enemies.get(i).setImagePath("default.png");
         }
@@ -277,11 +471,6 @@ public class GameEngine {
         if (currentWeapon == null) {
             return;
         }
-        
-        if (!currentWeapon.hasAmmo()) {
-            return;
-        }
-        currentWeapon.shoot();
         
         // retrieving the position and the angle of the spawned bullet
         double algebraicAngle = character.getRotationAngle();
@@ -300,6 +489,74 @@ public class GameEngine {
                 algebraicAngle
         );
         bullets.add(newBullet);
+    }
+    
+    Rectangle getCharacterBounds() {
+        int width = character.getSizeX();
+        int height = character.getSizeY();
+        int padding = 80; // Adjust this value as needed (e.g., 10 to 30)
+        int boxWidth = width - padding;
+        int boxHeight = height - padding;
+        int x = character.getPositionX() - boxWidth / 2;
+        int y = character.getPositionY() - boxHeight / 2;
+        return new Rectangle(x, y, boxWidth, boxHeight);
+    }
+    
+    Rectangle getEnemyBounds(Enemy enemy) {
+        int width = enemy.getSizeX();
+        int height = enemy.getSizeY();
+        int padding = 30; // Adjust this value as needed (e.g., 10 to 30)
+        int boxWidth = width - padding;
+        int boxHeight = height - padding;
+        int x = enemy.getPositionX() - boxWidth / 2;
+        int y = enemy.getPositionY() - boxHeight / 2;
+        return new Rectangle(x, y, boxWidth, boxHeight);
+    }
+    
+    Rectangle getBulletBounds(MovingBullet bullet) {
+        int radius = bullet.getRadius();
+        int x = bullet.getPositionX();
+        int y = bullet.getPositionY();
+        return new Rectangle(x, y, radius * 2, radius * 2);
+    }
+    
+    void checkCollisions() {
+        
+        Rectangle characterBounds = getCharacterBounds();
+        ArrayList<MovingBullet> hitBullets = new ArrayList<>();
+        ArrayList<Enemy> deadEnemies = new ArrayList<>();
+        
+        for (MovingBullet bullet : bullets) {
+            Rectangle bulletBounds = getBulletBounds(bullet);
+            
+            for (Enemy enemy : enemies) {
+                Rectangle enemyBounds = getEnemyBounds(enemy);
+                
+                if (bulletBounds.intersects(enemyBounds)) {
+                    hitBullets.add(bullet);
+                    deadEnemies.add(enemy);
+                    break;
+                }
+            }
+        }
+        
+        for (Enemy enemy : enemies) {
+            Rectangle enemyBounds = getEnemyBounds(enemy);
+            
+            if (characterBounds.intersects(enemyBounds)) {
+                character.setHealth(character.getHealth() - 10);
+                if (character.getHealth() <= 0) {
+                    gameState = gameOverState;
+                }
+            }
+        }
+        
+        bullets.removeAll(hitBullets);
+        enemies.removeAll(deadEnemies);
+    }
+    
+    void resetRound() {
+        createEntities();
     }
 
     public void run() {
