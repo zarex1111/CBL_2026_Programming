@@ -74,6 +74,10 @@ public class GameEngine {
                 case pausedState:
                     drawPausedScreen(g);
                     break;
+                case storeState:
+                    drawPausedScreen(g);
+                    createShopOptions(g);
+                    break;
                 case gameOverState:
                     drawGameOverScreen(g);
                     break;
@@ -148,10 +152,81 @@ public class GameEngine {
     }
     
     void updateEnemies() {
+        ArrayList<Enemy> deadEnemies = new ArrayList<>();
         for (Enemy iterEnemy : enemies) {
             updateEnemyRotationAngle(iterEnemy);
             iterEnemy.move();
+            if (iterEnemy.getHealthPoints() <= 0) {
+                deadEnemies.add(iterEnemy);
+            }
         }
+        enemies.removeAll(deadEnemies);
+    }
+    
+    void chooseShopOption(int keyCode) {
+        if (keyCode == KeyEvent.VK_Q) {
+            Bullet bulletType = character.getCurrentWeapon().getBulletType();
+            bulletType.setRadius((int) (bulletType.getRadius() * 1.5));
+        } else {
+            Weapon currentWeapon = character.getCurrentWeapon();
+            currentWeapon.setCooldown(
+                    (int) (currentWeapon.getDefaultCooldown() * 0.7));
+        }
+    }
+    
+    void createShopOptions(Graphics g) {
+        Image optionBackgroundImage;
+        try {
+            optionBackgroundImage = ImageIO.read(
+                    GameWindow.class.getResource(
+                            "/images/backgrounds/optionBackground.png"));
+        } catch (IOException ex) {
+            System.out.println("NO IMAGE FOR SHOPPING OPTIONS FOUND");
+            return;
+        }
+        
+        g.setColor(Color.black);
+        g.drawImage(
+                optionBackgroundImage,
+                (int) (screenWidth * 0.2),
+                (int) (screenHeight * 0.3),
+                (int) (screenWidth * 0.2),
+                (int) (screenHeight * 0.4),
+                gamePanel);
+        g.setColor(Color.white);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 20F));
+        g.drawString("(Q) SIZE +50%",
+                (int) (screenWidth * 0.225),
+                (int) (screenHeight * 0.65)
+        );
+        g.drawImage(character.getCurrentWeapon().getBulletType().getImage(),
+                (int) (screenWidth * 0.225),
+                (int) (screenHeight * 0.325),
+                (int) (screenWidth * 0.15),
+                (int) (screenWidth * 0.15),
+                gamePanel);
+        
+        g.setColor(Color.black);
+        g.drawImage(
+                optionBackgroundImage,
+                (int) (screenWidth * 0.6),
+                (int) (screenHeight * 0.3),
+                (int) (screenWidth * 0.2),
+                (int) (screenHeight * 0.4),
+                gamePanel);
+        g.setColor(Color.white);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 20F));
+        g.drawString("(E) COOLDOWN -30%",
+                (int) (screenWidth * 0.625),
+                (int) (screenHeight * 0.65)
+        );
+        Weapon w = character.getCurrentWeapon();
+        g.drawImage(w.getImage(),
+                (int) (screenWidth * 0.625),
+                (int) (screenHeight * 0.4),
+                (int) (screenWidth * 0.15),
+                (int) (screenWidth * 0.15 * w.getHeight() / w.getWidth()),
+                gamePanel);
     }
 
     void update() {
@@ -159,7 +234,7 @@ public class GameEngine {
         if (gameState == 2) {
             if (enemies.isEmpty()) {
                 roundCounter++;
-                gameState = pausedState;
+                gameState = storeState;
             } else {
                 updateEnemies();
                 updateBullets();
@@ -417,7 +492,13 @@ public class GameEngine {
                     gameState = pausedState;
                 } else if (keyCode == KeyEvent.VK_SPACE && gameState == playState) {
                     spawnBullet();
-                } else if (keyCode == KeyEvent.VK_B && gameState == pausedState) {
+                } else if ((gameState == pausedState || gameState == storeState) && 
+                        keyCode == KeyEvent.VK_B) {
+                    createEntities();
+                    gameState = playState;
+                } else if (gameState == storeState &&
+                        (keyCode == KeyEvent.VK_Q || keyCode == KeyEvent.VK_E)) {
+                    chooseShopOption(keyCode);
                     createEntities();
                     gameState = playState;
                 } else if (keyCode == KeyEvent.VK_SPACE && gameState == gameOverState) {
@@ -436,8 +517,8 @@ public class GameEngine {
     }
     
     void createEntities() {
-        int screenWidth = gamePanel.getWidth();
-        int screenHeight = gamePanel.getHeight();
+        screenWidth = gamePanel.getWidth();
+        screenHeight = gamePanel.getHeight();
         
         String imagePath = "/images/backgrounds/defaultBackground.png";
         try {
@@ -445,42 +526,63 @@ public class GameEngine {
         } catch (IOException ex) {
             System.out.println("Image not found");
         }
+
+        // bullets stored in an arraylist for deleting them easily
+        bullets = new ArrayList<>();
         
+        createEnemies(3 + roundCounter, -2 + roundCounter, -4 + roundCounter);
+    }
+    
+    void createInitialEntities() {
         // creating a character
         character = new Character(
                 2000, screenWidth / 2, screenHeight / 2, 100, 100);
         character.setImagePath("default.png");
         
         // giving him a weapon
-        Bullet basicBullet = new Bullet(10, 10, 10, Color.yellow);
+        Bullet basicBullet = new Bullet(100, 10, 10, Color.yellow);
         basicBullet.setImagePath("default.png");
         Weapon startWeapon = new Weapon(Color.BLACK, 50, 20, 40, basicBullet);
         startWeapon.setImagePath("default.png");
+        startWeapon.setCooldown(10);
         character.addWeapon(startWeapon);
-        
-        // bullets stored in an arraylist for deleting them easily
-        bullets = new ArrayList<>();
-        
-        createEnemies(3 + roundCounter);
     }
     
-    void createEnemies(int n) {
-        enemies = new ArrayList<>();
-        
-        for (int i = 0; i < n; i++) {
-            int[][] possiblePositions = new int[][] {
+    int[] randomPosition() {
+        int[][] possiblePositions = new int[][] {
                 new int[] {0, (int) (Math.random() * screenHeight)},
                 new int[] {screenWidth, (int) (Math.random() * screenHeight)},
                 new int[] {(int) (Math.random() * screenWidth), 0},
                 new int[] {(int) (Math.random() * screenWidth), screenHeight}
             };
-            int[] position = possiblePositions[(int) (Math.random() * 4)];
+        return possiblePositions[(int) (Math.random() * 4)];
+    }
+    
+    void spawnWave(int count, String imagePath, int coefficient) {
+        for (int i = 0; i < count; i++) {
+            int[] position = randomPosition();
             int posX = position[0];
             int posY = position[1];
-            Enemy enemy = new Enemy(100, posX, posY, 126, 100, 4);
+            Enemy enemy;
+            enemy = new Enemy(
+                    100 * coefficient,
+                    posX,
+                    posY,
+                    126 * coefficient,
+                    100 * coefficient,
+                    5 - coefficient
+            );
+            enemy.setImagePath(imagePath);
             enemies.add(enemy);
-            enemies.get(i).setImagePath("default.png");
         }
+    }
+    
+    void createEnemies(int smallEnemies, int mediumEnemies, int largeEnemies) {
+        enemies = new ArrayList<>();
+        
+        spawnWave(smallEnemies, "default.png", 1);
+        spawnWave(mediumEnemies, "default.png", 2);
+        spawnWave(largeEnemies, "default.png", 3);
     }
     
     void spawnBullet() {
@@ -542,7 +644,6 @@ public class GameEngine {
         
         Rectangle characterBounds = getCharacterBounds();
         ArrayList<MovingBullet> hitBullets = new ArrayList<>();
-        ArrayList<Enemy> deadEnemies = new ArrayList<>();
         
         for (MovingBullet bullet : bullets) {
             Rectangle bulletBounds = getBulletBounds(bullet);
@@ -552,7 +653,7 @@ public class GameEngine {
                 
                 if (bulletBounds.intersects(enemyBounds)) {
                     hitBullets.add(bullet);
-                    deadEnemies.add(enemy);
+                    enemy.reduceHealth(bullet.getDamage());
                     break;
                 }
             }
@@ -570,86 +671,18 @@ public class GameEngine {
         }
         
         bullets.removeAll(hitBullets);
-        enemies.removeAll(deadEnemies);
     }
     
     void resetRound() {
         createEntities();
-    }
-    
-    Rectangle getCharacterBounds() {
-        int width = character.getSizeX();
-        int height = character.getSizeY();
-        int padding = 80; // Adjust this value as needed (e.g., 10 to 30)
-        int boxWidth = width - padding;
-        int boxHeight = height - padding;
-        int x = character.getPositionX() - boxWidth / 2;
-        int y = character.getPositionY() - boxHeight / 2;
-        return new Rectangle(x, y, boxWidth, boxHeight);
-    }
-    
-    Rectangle getEnemyBounds(Enemy enemy) {
-        int width = enemy.getSizeX();
-        int height = enemy.getSizeY();
-        int padding = 30; // Adjust this value as needed (e.g., 10 to 30)
-        int boxWidth = width - padding;
-        int boxHeight = height - padding;
-        int x = enemy.getPositionX() - boxWidth / 2;
-        int y = enemy.getPositionY() - boxHeight / 2;
-        return new Rectangle(x, y, boxWidth, boxHeight);
-    }
-    
-    Rectangle getBulletBounds(MovingBullet bullet) {
-        int radius = bullet.getRadius();
-        int x = bullet.getPositionX();
-        int y = bullet.getPositionY();
-        return new Rectangle(x, y, radius * 2, radius * 2);
-    }
-    
-    void checkCollisions() {
-        
-        Rectangle characterBounds = getCharacterBounds();
-        ArrayList<MovingBullet> hitBullets = new ArrayList<>();
-        ArrayList<Enemy> deadEnemies = new ArrayList<>();
-        
-        for (MovingBullet bullet : bullets) {
-            Rectangle bulletBounds = getBulletBounds(bullet);
-            
-            for (Enemy enemy : enemies) {
-                Rectangle enemyBounds = getEnemyBounds(enemy);
-                
-                if (bulletBounds.intersects(enemyBounds)) {
-                    hitBullets.add(bullet);
-                    deadEnemies.add(enemy);
-                    break;
-                }
-            }
-        }
-        
-        for (Enemy enemy : enemies) {
-            Rectangle enemyBounds = getEnemyBounds(enemy);
-            
-            if (characterBounds.intersects(enemyBounds)) {
-                character.setHealth(character.getHealth() - 10);
-                if (character.getHealth() <= 0) {
-                    gameState = gameOverState;
-                }
-            }
-        }
-        
-        bullets.removeAll(hitBullets);
-        enemies.removeAll(deadEnemies);
-    }
-    
-    void resetRound() {
-        createEntities();
+        createInitialEntities();
     }
 
     public void run() {
         
         // building the initial stage of the game
         constructWindow();
-        createEntities();
+        resetRound();
         
         // FPS-based timer from the JSwing package
         Timer timer = new Timer(TARGET_TIME, e -> {

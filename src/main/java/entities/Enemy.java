@@ -68,4 +68,8 @@ public class Enemy extends Sprite {
         positionY += (int) (Math.sin(rotationAngle) * movementSpeed);
     }
     
+    public void reduceHealth(int amount) {
+        healthPoints -= amount;
+    }
+    
 }

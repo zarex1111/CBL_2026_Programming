@@ -29,4 +29,12 @@ public class Bullet extends Sprite {
         return color;
     }
     
+    public int getDamage() {
+        return damage;
+    }
+    
+    public void setRadius(int radius) {
+        this.radius = radius;
+    }
+    
 }

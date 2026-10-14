@@ -52,6 +52,14 @@ public class Weapon extends Sprite {
         tickCooldown = DEFAULT_COOLDOWN;
     }
     
+    public void setCooldown(int value) {
+        DEFAULT_COOLDOWN = value;
+    }
+    
+    public int getDefaultCooldown() {
+        return DEFAULT_COOLDOWN;
+    }
+    
     public void reduceCooldown() {
         if (tickCooldown > 0) {
             tickCooldown--;
