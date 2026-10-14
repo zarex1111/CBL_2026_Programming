@@ -10,6 +10,8 @@ public class Weapon extends Sprite {
     int height;
     int ammo;
     Bullet bulletType;
+    static int DEFAULT_COOLDOWN = 20;
+    int tickCooldown = 0;
     
     public Weapon(Color color, int sizeX, int sizeY, int ammo, Bullet bulletType) {
         this.color = color;
@@ -47,5 +49,16 @@ public class Weapon extends Sprite {
     
     public void shoot() {
         ammo -= 1;
+        tickCooldown = DEFAULT_COOLDOWN;
+    }
+    
+    public void reduceCooldown() {
+        if (tickCooldown > 0) {
+            tickCooldown--;
+        }
+    }
+    
+    public boolean onCooldown() {
+        return (tickCooldown > 0);
     }
 }
