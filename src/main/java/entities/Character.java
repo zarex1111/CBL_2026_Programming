@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Character extends Sprite {
 
     int health;
+    int maxHealth;
     double rotationAngle;
     int positionX;
     int positionY;
@@ -17,6 +18,7 @@ public class Character extends Sprite {
     public Character(
             int health, int positionX, int positionY, int sizeX, int sizeY) {
         this.health = health;
+        maxHealth = health;
         this.positionX = positionX;
         this.positionY = positionY;
         this.sizeX = sizeX;
@@ -24,6 +26,10 @@ public class Character extends Sprite {
         inventory = new ArrayList<>();
         
         setDefaultFolder("character");
+    }
+    
+    public int getMaxHealth() {
+        return maxHealth;
     }
     
     public void setPosition(int x, int y) {

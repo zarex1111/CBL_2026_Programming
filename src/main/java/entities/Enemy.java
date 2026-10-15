@@ -11,6 +11,7 @@ public class Enemy extends Sprite {
     int sizeX;
     int sizeY;
     double movementSpeed;
+    boolean canMove;
 
     public Enemy(int healthPoints,
             int positionX, int positionY,
@@ -70,6 +71,14 @@ public class Enemy extends Sprite {
     
     public void reduceHealth(int amount) {
         healthPoints -= amount;
+    }
+    
+    public void setCanMove(boolean value) {
+        canMove = value;
+    }
+    
+    public boolean getCanMove() {
+        return canMove;
     }
     
 }
