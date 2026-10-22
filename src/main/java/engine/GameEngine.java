@@ -4,13 +4,14 @@ import entities.Bullet;
 import entities.Character;
 import entities.Enemy;
 import entities.MovingBullet;
+import entities.Upgrade;
 import entities.Weapon;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import windows.GameWindow;
 
@@ -61,7 +62,7 @@ public class GameEngine {
         }
         
         
-        // redefining the default paintMathod so it draws our sprites
+        // redefining the default paintMethod so it draws our sprites
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -141,6 +142,8 @@ public class GameEngine {
         enemy.setRotationAngle(newAngle);
     }
     
+    /*moves enemies that aren't collided with the character and removes those,
+    that have collided with a bullet*/
     void updateEnemies() {
         ArrayList<Enemy> deadEnemies = new ArrayList<>();
         for (Enemy iterEnemy : enemies) {
@@ -156,85 +159,165 @@ public class GameEngine {
         enemies.removeAll(deadEnemies);
     }
     
+    void executeUpgrade(Upgrade selectedUpgrade) {
+        switch (selectedUpgrade.getUpgradeType()) {
+            case BULLET -> {
+                Bullet currentType = character.getCurrentWeapon().getBulletType();
+                currentType.setRadius(
+                        (int) (currentType.getRadius()
+                                * selectedUpgrade.getPercentage()));
+            }
+            case WEAPON -> {
+                Weapon currentWeapon = character.getCurrentWeapon();
+                currentWeapon.setCooldown(
+                        (int) (currentWeapon.getDefaultCooldown()
+                                * selectedUpgrade.getPercentage()));
+            }
+            case NEW_WEAPON -> {
+                if (selectedUpgrade == Upgrade.PINK_WEAPON) {
+                    Bullet pinkBullet = new Bullet(150, 3, 15, Color.pink);
+                    pinkBullet.setImagePath("pink.png");
+                    Weapon pinkWeapon = new Weapon(
+                            Color.pink, 60, 30, 100, pinkBullet);
+                    pinkWeapon.setImagePath("pink.png");
+                    character.addWeapon(pinkWeapon);
+                }
+            }
+            default -> {
+                return;
+            }
+        }
+        character.changeMoney(selectedUpgrade.getPrice() * -1);
+        startNewRound();
+    }
+    
+    Upgrade firstOption;
+    Upgrade secondOption;
+    
+    Upgrade getShoppingOption() {
+        double setProbability = Math.random();
+        
+        Upgrade possibleOption = Upgrade.values()[
+                (int) (Math.random() * Upgrade.values().length)
+            ];
+        while (possibleOption.getRarityProbability() < setProbability) {
+            possibleOption = Upgrade.values()[
+                (int) (Math.random() * Upgrade.values().length)
+            ];
+        }
+
+        return possibleOption;
+    }
+    
+    void drawShoppingOption(Graphics g,
+            int topLeftCornerX,
+            int topLeftCornerY,
+            int boxWidth,
+            int boxHeight,
+            int stringTopX,
+            int stringTopY,
+            int imageTopX,
+            int imageTopY,
+            int imageWidth,
+            int imageHeight,
+            String key,
+            Upgrade upgradeOption) {
+        Image optionBackgroundImage = upgradeOption.getBackgroundImage();
+        
+        g.drawImage(optionBackgroundImage,
+                topLeftCornerX, topLeftCornerY, boxWidth, boxHeight, gamePanel);
+        
+        g.setColor(Color.white);
+        int fontSize = (int) (screenHeight * 0.025);
+        int upgradePrice = upgradeOption.getPrice();
+        g.setFont(g.getFont().deriveFont(Font.BOLD, fontSize));
+        g.drawString(key + " " + upgradeOption.getText(),
+                stringTopX,
+                stringTopY
+        );
+        g.drawString("Price: " + String.valueOf(upgradePrice),
+                stringTopX,
+                stringTopY + fontSize);
+        
+        Image icon;
+        switch (upgradeOption.getUpgradeType()) {
+            case BULLET -> icon = character.getCurrentWeapon().getBulletType().getImage();
+            case WEAPON -> {
+                icon = character.getCurrentWeapon().getImage();
+                imageTopY += imageHeight / 2;
+                imageHeight = (int) (imageHeight * (double) icon.getHeight(gamePanel) 
+                        / icon.getWidth(gamePanel));
+                imageTopY -= imageHeight / 2;
+            }
+            default -> {
+                Sprite dummy = new Sprite();
+                dummy.setDefaultFolder("weapon");
+                dummy.setImagePath("pink.png");
+                
+                icon = dummy.getImage();
+                imageTopY += imageHeight / 2;
+                imageHeight = (int) (imageHeight * (double) icon.getHeight(gamePanel) 
+                        / icon.getWidth(gamePanel));
+                imageTopY -= imageHeight / 2;
+            }
+        }
+        g.drawImage(
+                icon, imageTopX, imageTopY,
+                imageWidth,
+                imageHeight,
+                gamePanel);
+    }
+    
+    /*detects whether a shop option has been selected and if it is possible to
+    go through with it*/
     void chooseShopOption(int keyCode) {
-        int priceSize = 100 * currentSizeUpgradeCount;
-        int priceCooldown = 100 * currentCooldownUpgradeCount;
-        if (keyCode == KeyEvent.VK_Q && character.getMoney() >= priceSize) {
-            Bullet bulletType = character.getCurrentWeapon().getBulletType();
-            bulletType.setRadius((int) (bulletType.getRadius() * 1.5));
-            character.changeMoney(-1 * priceSize);
-            currentSizeUpgradeCount++;
-        } else if (character.getMoney() >= priceCooldown) {
-            Weapon currentWeapon = character.getCurrentWeapon();
-            currentWeapon.setCooldown(
-                    (int) (currentWeapon.getDefaultCooldown() * 0.7));
-            character.changeMoney(-1 * priceCooldown);
-            currentCooldownUpgradeCount++;
+        if (character.getMoney() >= firstOption.getPrice()
+                && keyCode == KeyEvent.VK_Q) {
+            executeUpgrade(firstOption);
+        } else if (character.getMoney() >= secondOption.getPrice()
+                && keyCode == KeyEvent.VK_E) {
+            executeUpgrade(secondOption);
         }
     }
     
+    //displays the shop options
     void createShopOptions(Graphics g) {
-        Image optionBackgroundImage;
-        int priceSize = 100 * currentSizeUpgradeCount;
-        int priceCooldown = 100 * currentCooldownUpgradeCount;
-        try {
-            optionBackgroundImage = ImageIO.read(
-                    GameWindow.class.getResource(
-                            "/images/backgrounds/optionBackground.png"));
-        } catch (IOException ex) {
-            System.out.println("NO IMAGE FOR SHOPPING OPTIONS FOUND");
-            return;
+        if (firstOption == null && secondOption == null) {
+            firstOption = getShoppingOption();
+            secondOption = getShoppingOption();
+            while (firstOption.getUpgradeType()
+                    == secondOption.getUpgradeType()) {
+                secondOption = getShoppingOption();
+            }
         }
         
-        g.setColor(Color.black);
-        g.drawImage(
-                optionBackgroundImage,
+        drawShoppingOption(g,
                 (int) (screenWidth * 0.2),
                 (int) (screenHeight * 0.3),
                 (int) (screenWidth * 0.2),
                 (int) (screenHeight * 0.4),
-                gamePanel);
-        g.setColor(Color.white);
-        g.setFont(g.getFont().deriveFont(Font.BOLD, 20F));
-        g.drawString("(Q) SIZE +50%",
                 (int) (screenWidth * 0.225),
-                (int) (screenHeight * 0.65)
-        );
-        g.drawImage(character.getCurrentWeapon().getBulletType().getImage(),
+                (int) (screenHeight * 0.65),
                 (int) (screenWidth * 0.225),
                 (int) (screenHeight * 0.325),
                 (int) (screenWidth * 0.15),
                 (int) (screenWidth * 0.15),
-                gamePanel);
+                "(Q)",
+                firstOption);
         
-        g.setColor(Color.black);
-        g.drawImage(
-                optionBackgroundImage,
+        drawShoppingOption(g,
                 (int) (screenWidth * 0.6),
                 (int) (screenHeight * 0.3),
                 (int) (screenWidth * 0.2),
                 (int) (screenHeight * 0.4),
-                gamePanel);
-        g.setColor(Color.white);
-        g.setFont(g.getFont().deriveFont(Font.BOLD, 20F));
-        g.drawString("(E) COOLDOWN -30%",
                 (int) (screenWidth * 0.625),
-                (int) (screenHeight * 0.65)
-        );
-        Weapon w = character.getCurrentWeapon();
-        g.drawImage(w.getImage(),
+                (int) (screenHeight * 0.65),
                 (int) (screenWidth * 0.625),
-                (int) (screenHeight * 0.4),
+                (int) (screenHeight * 0.325),
                 (int) (screenWidth * 0.15),
-                (int) (screenWidth * 0.15 * w.getHeight() / w.getWidth()),
-                gamePanel);
-        g.setColor(Color.black);
-        g.setFont(g.getFont().deriveFont(Font.BOLD, 28F));
-        g.drawString("Price of size upgrade: " + Integer.toString(priceSize), 
-                (int) (screenWidth * 0.18), (int) (screenHeight * 0.75));
-        g.drawString("Price of cooldown upgrade: " + Integer.toString(priceCooldown), 
-                (int) (screenWidth * 0.56), (int) (screenHeight * 0.75));
-        
+                (int) (screenWidth * 0.15),
+                "(E)",
+                secondOption);        
     }
 
     void update() {
@@ -256,9 +339,6 @@ public class GameEngine {
         g.fillRect(0, 0, screenWidth, screenHeight);
         
         g.setFont(g.getFont().deriveFont(Font.BOLD, 120F));
-        //g.drawString("Zombie Shooter", (screenWidth 
-         //       - g.getFontMetrics().stringWidth("Zombie Shooter")) / 2, screenHeight / 2 - 100);
-        
         
         g.setColor(Color.white);
         g.drawString("Zombie Shooter", (screenWidth 
@@ -267,7 +347,8 @@ public class GameEngine {
         
         g.setFont(g.getFont().deriveFont(Font.ITALIC, 40F));
         g.drawString("Press Space to start", (screenWidth 
-                - g.getFontMetrics().stringWidth("Press Space to start")) / 2, screenHeight / 2 + 100);
+                - g.getFontMetrics().stringWidth("Press Space to start")) / 2, 
+                screenHeight / 2 + 100);
     }
     
     void drawPlayScreen(Graphics g) {
@@ -275,6 +356,7 @@ public class GameEngine {
         drawBullets(g);
         drawCharacter(g);
         drawEnemies(g);
+        drawHealthBar(g);
     }
     
     void drawPausedScreen(Graphics g) {
@@ -285,6 +367,7 @@ public class GameEngine {
         g.setColor(Color.black);
         g.drawString(text, 30, 700);
         drawCharacter(g);
+        drawHealthBar(g);
     }
     
     void drawGameOverScreen(Graphics g) {
@@ -309,7 +392,8 @@ public class GameEngine {
         g.setColor(Color.white);
         g.setFont(g.getFont().deriveFont(Font.BOLD, 25F));
         text = "Rounds survived: " + Integer.toString(roundCounter);
-        g.drawString(text, screenWidth - 225, 30);
+        textWidth = g.getFontMetrics().stringWidth(text);
+        g.drawString(text, screenWidth - 50 - textWidth, 30);
     }
     
     void drawBackgroundScreen(Graphics g) {
@@ -375,16 +459,6 @@ public class GameEngine {
                         currentWeapon.getHeight(),
                         gamePanel);
             }
-            // drawing the ammo (DEPRECATED?)
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Times New Roman",
-                    Font.PLAIN,
-                    currentWeapon.getHeight() / 2)
-            );
-            g2d.drawString(String.valueOf(currentWeapon.getAmmo()),
-                    character.getPositionX() + currentWeapon.getWidth() / 4,
-                    character.getPositionY()
-            );
         }
     }
     
@@ -435,6 +509,34 @@ public class GameEngine {
         
         g2d.setTransform(initialState);
 
+    }
+    
+    void drawHealthBar(Graphics g) {
+        int topLeftCornerX = (int) (screenWidth * 0.025);
+        int topLeftCornerY = (int) (screenHeight * 0.025);
+        int maxWidth = (int) (screenWidth * 0.3);
+        int height = (int) (screenHeight * 0.05);
+        
+        int currentHealth = character.getHealth();
+        int maxHealth = character.getMaxHealth();
+        
+        g.setColor(Color.black);
+        g.fillRect(topLeftCornerX - (int) (screenHeight * 0.01),
+                topLeftCornerY - (int) (screenHeight * 0.01),
+                maxWidth + 2 * (int) (screenHeight * 0.01),
+                height + 2 * (int) (screenHeight * 0.01));
+        g.setColor(Color.red);
+        g.fillRect(topLeftCornerX,
+                topLeftCornerY,
+                (int) ((double) (currentHealth) * maxWidth / maxHealth),
+                height);
+        
+        g.setColor(Color.white);
+        g.setFont(g.getFont().deriveFont(Font.BOLD, height));
+        g.drawString(
+                String.valueOf(currentHealth) + "/" + String.valueOf(maxHealth),
+                topLeftCornerX,
+                topLeftCornerY + (int) (screenHeight * 0.036));
     }
     
     void drawBullets(Graphics g) {
@@ -488,6 +590,14 @@ public class GameEngine {
         gameWindow.repaint();
     }
     
+    void startNewRound() {
+        firstOption = null;
+        secondOption = null;
+        
+        createEntities();
+        gameState = playState;
+    }
+    
     void constructWindow() {
         gameWindow = new GameWindow();
         
@@ -505,20 +615,18 @@ public class GameEngine {
                     gameState = pausedState;
                 } else if (keyCode == KeyEvent.VK_SPACE && gameState == playState) {
                     spawnBullet();
-                } else if ((gameState == pausedState || gameState == storeState) && 
-                        keyCode == KeyEvent.VK_B) {
-                    createEntities();
-                    gameState = playState;
-                } else if (gameState == storeState &&
-                        (keyCode == KeyEvent.VK_Q || keyCode == KeyEvent.VK_E)) {
+                } else if ((gameState == pausedState || gameState == storeState) 
+                        && keyCode == KeyEvent.VK_B) {
+                    startNewRound();
+                } else if (gameState == storeState 
+                        && (keyCode == KeyEvent.VK_Q || keyCode == KeyEvent.VK_E)) {
                     chooseShopOption(keyCode);
                 } else if (keyCode == KeyEvent.VK_R && gameState == gameOverState) {
                     gameState = pausedState;
                     roundCounter = 0;
                     resetRound();
                 } else if (gameState == storeState && keyCode == KeyEvent.VK_B) {
-                    createEntities();
-                    gameState = playState;
+                    startNewRound();
                 }
             }
         });
@@ -556,7 +664,7 @@ public class GameEngine {
         // giving him a weapon
         Bullet basicBullet = new Bullet(100, 10, 10, Color.yellow);
         basicBullet.setImagePath("default.png");
-        Weapon startWeapon = new Weapon(Color.BLACK, 50, 20, 40, basicBullet);
+        Weapon startWeapon = new Weapon(Color.BLACK, 50, 20, 70, basicBullet);
         startWeapon.setImagePath("default.png");
         startWeapon.setCooldown(10);
         character.addWeapon(startWeapon);
@@ -564,10 +672,10 @@ public class GameEngine {
     
     int[] randomPosition() {
         int[][] possiblePositions = new int[][] {
-                new int[] {0, (int) (Math.random() * screenHeight)},
-                new int[] {screenWidth, (int) (Math.random() * screenHeight)},
-                new int[] {(int) (Math.random() * screenWidth), 0},
-                new int[] {(int) (Math.random() * screenWidth), screenHeight}
+            new int[] {0, (int) (Math.random() * screenHeight)},
+            new int[] {screenWidth, (int) (Math.random() * screenHeight)},
+            new int[] {(int) (Math.random() * screenWidth), 0},
+            new int[] {(int) (Math.random() * screenWidth), screenHeight}
             };
         return possiblePositions[(int) (Math.random() * 4)];
     }
@@ -626,6 +734,8 @@ public class GameEngine {
         currentWeapon.shoot();
     }
     
+    /*we return a rectangle that is the hitbox of the character with a padding
+    so that it is more accurate*/
     Rectangle getCharacterBounds() {
         int width = character.getSizeX();
         int height = character.getSizeY();
@@ -634,9 +744,12 @@ public class GameEngine {
         int boxHeight = height - padding;
         int x = character.getPositionX() - boxWidth / 2;
         int y = character.getPositionY() - boxHeight / 2;
+        
         return new Rectangle(x, y, boxWidth, boxHeight);
     }
     
+    /*we return a rectangle that is the hitbox of the enemy with a padding
+    so that it is more accurate*/
     Rectangle getEnemyBounds(Enemy enemy) {
         int width = enemy.getSizeX();
         int height = enemy.getSizeY();
@@ -645,9 +758,12 @@ public class GameEngine {
         int boxHeight = height - padding;
         int x = enemy.getPositionX() - boxWidth / 2;
         int y = enemy.getPositionY() - boxHeight / 2;
+        
         return new Rectangle(x, y, boxWidth, boxHeight);
     }
     
+    /*we return a rectangle that is the hitbox of the bullet with a padding
+    so that it is more accurate*/
     Rectangle getBulletBounds(MovingBullet bullet) {
         int radius = bullet.getRadius();
         int x = bullet.getPositionX();
@@ -692,7 +808,7 @@ public class GameEngine {
     }
     
     void resetRound() {
-        createEntities();
+        startNewRound();
         createInitialEntities();
     }
 
