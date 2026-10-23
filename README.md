@@ -7,6 +7,8 @@ A simple game in <strong>Java</strong>
 The project is done completely in Java and does not require any additional libraries apart from the pre-installed JSwing and AWT.
 The program should be started by running the <code>CBL.java</code> , which implements the <code>main()</code> method in which the framerate is set when creating the GameEngine class and the only public method of the Engine.GameEngine - <code>run()</code> - is called.
 
+The testing was done in NetBeans, since the source directory is a Maven project initially developed and compiled in NetBeans - running it in a different IDE might require a different version of Java.
+
 <h3>Project structure</h3>
 <h4><code>src/main/java/</code></h4>
 <ul>
