@@ -188,7 +188,9 @@ public class GameEngine {
             }
         }
         character.changeMoney(selectedUpgrade.getPrice() * -1);
+        
         startNewRound();
+        gameState = playState;
     }
     
     Upgrade firstOption;
@@ -595,7 +597,6 @@ public class GameEngine {
         secondOption = null;
         
         createEntities();
-        gameState = playState;
     }
     
     void constructWindow() {
@@ -618,6 +619,7 @@ public class GameEngine {
                 } else if ((gameState == pausedState || gameState == storeState) 
                         && keyCode == KeyEvent.VK_B) {
                     startNewRound();
+                    gameState = playState;
                 } else if (gameState == storeState 
                         && (keyCode == KeyEvent.VK_Q || keyCode == KeyEvent.VK_E)) {
                     chooseShopOption(keyCode);
@@ -627,6 +629,7 @@ public class GameEngine {
                     resetRound();
                 } else if (gameState == storeState && keyCode == KeyEvent.VK_B) {
                     startNewRound();
+                    gameState = playState;
                 }
             }
         });
