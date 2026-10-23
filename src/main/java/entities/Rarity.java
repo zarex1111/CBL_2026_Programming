@@ -2,8 +2,8 @@ package entities;
 
 public enum Rarity {
     COMMON(1),
-    RARE(0.7),
-    EPIC(0.4),
+    RARE(0.5),
+    EPIC(0.25),
     LEGENDARY(0.1);
     
     private final double probability;
