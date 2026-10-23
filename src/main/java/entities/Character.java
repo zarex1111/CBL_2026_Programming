@@ -14,6 +14,7 @@ public class Character extends Sprite {
     int sizeY;
     ArrayList<Weapon> inventory;
     Weapon currentWeapon;
+    int money;
 
     public Character(
             int health, int positionX, int positionY, int sizeX, int sizeY) {
@@ -24,8 +25,17 @@ public class Character extends Sprite {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         inventory = new ArrayList<>();
+        money = 0;
         
         setDefaultFolder("character");
+    }
+    
+    public int getMoney() {
+        return money;
+    }
+    
+    public void changeMoney(int amount) {
+        money += amount;
     }
     
     public int getMaxHealth() {

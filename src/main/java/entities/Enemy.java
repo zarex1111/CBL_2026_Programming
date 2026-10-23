@@ -12,19 +12,26 @@ public class Enemy extends Sprite {
     int sizeY;
     double movementSpeed;
     boolean canMove;
+    int money;
 
     public Enemy(int healthPoints,
             int positionX, int positionY,
             int sizeX, int sizeY,
-            double movementSpeed) {
+            double movementSpeed,
+            int money) {
         this.healthPoints = healthPoints;
         this.positionX = positionX;
         this.positionY = positionY;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.movementSpeed = movementSpeed;
+        this.money = money;
         
         setDefaultFolder("enemy");
+    }
+    
+    public int getMonetaryValue() {
+        return money;
     }
     
     public void setPosition(int x, int y) {
