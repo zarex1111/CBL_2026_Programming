@@ -742,7 +742,7 @@ public class GameEngine {
     Rectangle getCharacterBounds() {
         int width = character.getSizeX();
         int height = character.getSizeY();
-        int padding = 90;
+        int padding = 70;
         int boxWidth = width - padding;
         int boxHeight = height - padding;
         int x = character.getPositionX() - boxWidth / 2;
