@@ -322,6 +322,8 @@ public class GameEngine {
                 secondOption);        
     }
 
+    /*we update the game based on what the current game state is, as different
+    game states have different changes*/
     void update() {
         updateCharacter();
         if (gameState == 2) {
@@ -737,8 +739,8 @@ public class GameEngine {
         currentWeapon.shoot();
     }
     
-    /*we return a rectangle that is the hitbox of the character with a padding
-    so that it is more accurate*/
+    /*we make the hitbox of the character a rectangle, as it is the easiest
+    shape to deal with; and we give it a padding to make it more accurate*/
     Rectangle getCharacterBounds() {
         int width = character.getSizeX();
         int height = character.getSizeY();
@@ -751,8 +753,8 @@ public class GameEngine {
         return new Rectangle(x, y, boxWidth, boxHeight);
     }
     
-    /*we return a rectangle that is the hitbox of the enemy with a padding
-    so that it is more accurate*/
+    /*we make the hitbox of the enemy a rectangle, as it is the easiest
+    shape to deal with; and we give it a padding to make it more accurate*/
     Rectangle getEnemyBounds(Enemy enemy) {
         int width = enemy.getSizeX();
         int height = enemy.getSizeY();
@@ -765,8 +767,8 @@ public class GameEngine {
         return new Rectangle(x, y, boxWidth, boxHeight);
     }
     
-    /*we return a rectangle that is the hitbox of the bullet with a padding
-    so that it is more accurate*/
+    /*we make the hitbox of the bullet a rectangle, as it is the easiest
+    shape to deal with; and we give it a padding to make it more accurate*/
     Rectangle getBulletBounds(MovingBullet bullet) {
         int radius = bullet.getRadius();
         int x = bullet.getPositionX();
@@ -774,6 +776,8 @@ public class GameEngine {
         return new Rectangle(x, y, radius * 2, radius * 2);
     }
     
+    /*we check for collisions by checking if the rectangle hitboxes overlap, as
+    the images are basically rectangles, especially with the padding*/
     void checkCollisions() {
         
         Rectangle characterBounds = getCharacterBounds();
